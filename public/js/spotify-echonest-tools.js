@@ -39,14 +39,16 @@ function fidToSpid(fid) {
     return fields[fields.length - 1];
 }
 
-function getSpotifyPlayer(sessionId, inPlaylist, callback) {
+function getSpotifyPlayer(sessionId, inPlaylist, bannedArtistsList, callback) {
     var curSong = 0;
     var audio = null;
     var player = createPlayer();
+    var bannedArtists = bannedArtistsList;
     window.playlist = [];
     var sessionId = sessionId;
 
     function addSpotifyInfoToPlaylist(list) {
+
         var tids = [];
         list.forEach(function(song) {
             var tid = fidToSpid(song.tracks[0].foreign_id);
@@ -78,10 +80,47 @@ function getSpotifyPlayer(sessionId, inPlaylist, callback) {
             }) ;
     }
 
+    function getArtistFromSpotify(artistUri, callback){
+        $.getJSON("https://api.spotify.com/v1/track/" + fidToSpid(artistUri))
+            .done(function(data) {
+                callback(data);
+            })
+    }
+
+    function banArtist(artistUri){
+        console.log("banArtist", "entering...");
+        var url = getConfig().echoNestHost + 'api/v4/playlist/dynamic/feedback';
+        $.get(url, {
+            'api_key': getConfig().apiKey,
+            'session_id': sessionId,
+            'ban_artist': artistUri,
+            '_': Math.floor(Date.now())
+        })
+        .done(function(data) {
+            //info("");
+            console.log('banArtists data', data);
+        });
+
+        if(!bannedArtists.hasOwnProperty(fidToSpid(artistUri))){
+            getArtistFromSpotify(artistUri, function(artist){
+                bannedArtists[fidToSpid(artistUri)] = artist;
+
+            });
+        }
+    }
+
     function filterSongs(songs) {
         var out = [];
 
         function isGoodSong(song) {
+            for(var iArtist = 0; iArtist < song.artist_foreign_ids.length; iArtist++){
+                if(bannedArtists.hasOwnProperty(fidToSpid(song.artist_foreign_ids[iArtist].foreign_id))){
+                    console.log('filterSongs artist banned', 'NOT IN MY HOUSE');
+                    banArtist(song.artist_foreign_ids[iArtist]);
+                    return false;
+                }
+            }
+
             return song.spotifyTrackInfo.preview_url != null;
         }
 
@@ -192,7 +231,7 @@ function getSpotifyPlayer(sessionId, inPlaylist, callback) {
         var next = $('<button class="btn btn-primary btn-sm" type="button"><span class="glyphicon glyphicon-forward"></span></button>');
         var prev = $('<button class="btn btn-primary btn-sm" type="button"><span class="glyphicon glyphicon-backward"></span></button>');
         var pausePlay = $('<button class="btn btn-primary btn-sm" type="button"><span class="glyphicon glyphicon-play"></span></button>');
-
+        var ban = $('<button class="btn btn-primary btn-sm" type="button"><span class="glyphicon glyphicon-remove"></span></button>');
 
         audio = $("<audio>");
         audio.on('pause', function() {
@@ -224,12 +263,19 @@ function getSpotifyPlayer(sessionId, inPlaylist, callback) {
             prevSong();
         });
 
+        ban.on('click', function(){
+            for(var iArtist = 0; iArtist < playlist[curSong].artist_foreign_ids.length; iArtist++){
+                banArtist(fidToSpid(playlist[curSong].artist_foreign_ids[iArtist].foreign_id));
+            }
+            nextSong();
+        });
 
         info.append(title);
         info.append(artist);
 
         controls.append(prev);
         controls.append(pausePlay);
+        controls.append(ban);
         controls.append(next);
 
         main.append(img);
@@ -243,7 +289,8 @@ function getSpotifyPlayer(sessionId, inPlaylist, callback) {
         return main;
     }
 
-    addSpotifyInfoToPlaylist(inPlaylist);
+    fetchNextTracks();
+
     return player;
 }
 

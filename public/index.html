@@ -81,11 +81,26 @@
             /* Unique keys to artist data */
             window.artists = {};
 
+
+            window.findArtist = function(name){
+                return findObjectByAttribute(objToArray(artists), "name", name);
+            };
+
             window.objToArray = function(o) {
                 return $.map(o, function(value, index) {
                     return [value];
                 });
             };
+
+
+            window.findObjectByAttribute = function(items, attribute, value){
+                for (var i = 0; i < items.length; i++) {
+                    if (items[i][attribute] === value) {
+                        return items[i];
+                    }
+                }
+                return null;
+            }
 
             function getTemplateRequest(){
                 return {
@@ -179,42 +194,6 @@
                 $.ajax(request);
             }
 
-            function banArtists(artistList){
-                console.log("banArtists", "entering...")
-
-                var artistUriBatches = chunk(Object.keys(artistList).map(function(artistIdKey){
-                    return 'spotify:artist:' + artistIdKey;
-                }), 100);
-
-
-                console.log("banArtists", artistUriBatches);
-
-                var url = getConfig().echoNestHost + 'api/v4/playlist/dynamic/feedback';
-                window.respCount = 0;
-
-                for(var iBatch = 0; iBatch < artistUriBatches.length; iBatch++){
-                    console.log('banArtists sending', iBatch);
-                    $.get(url, {
-                        'api_key': getConfig().apiKey,
-                        'session_id': sessionId,
-                        'ban_artist': artistUriBatches[iBatch],
-                        '_': Math.floor(Date.now())
-                    })
-                    .done(function(data) {
-                        //info("");
-                        console.log('banArtists data', data);
-                    })
-                    .error( function() {
-                        //info("Whoops, had some trouble getting that batch of songs");
-                                alert("SADFASf");
-                    })
-                    .always(function(){
-                        respCount++;
-                        console.log('banArtists respCount', respCount);
-                    })
-                }
-
-            }
 
             function fetchArtistPlaylist(artist,  wandering, variety) {
                 var url = config.echoNestHost + 'api/v4/playlist/dynamic/create';
@@ -223,22 +202,17 @@
                 $.getJSON(url, { 'artist': artist,
                     'api_key': config.apiKey,
                     'bucket': [ 'id:' + config.spotifySpace, 'tracks'],
-                    'variety' : 1, results: 1, 'type':'artist-radio',  })
+                    'variety' : 1, 'adventurousness': 1, results: 0, 'type':'artist-radio',  })
                         .done(function(data) {
                             info("");
-                            if (! ('songs' in data.response)) {
-                                info("Can't find that artist");
-                            } else {
-                                sessionId = data.response.session_id;
-                                var title = "Artist radio for " + artist;
-                                getSpotifyPlayer(sessionId, data.response.songs, function(player) {
-                                    console.log('got the player');
-                                    currPlayer = player;
-                                    $("#all_results").append(player);
-                                    console.log(player);
-                                    banArtists(artists);
-                                });
-                            }
+                            sessionId = data.response.session_id;
+                            var title = "Artist radio for " + artist;
+                            getSpotifyPlayer(sessionId, data.response.songs, artists, function(player) {
+                                console.log('got the player');
+                                currPlayer = player;
+                                $("#all_results").append(player);
+                                console.log(player);
+                            });
                         })
                         .error( function() {
                             info("Whoops, had some trouble getting that playlist");
