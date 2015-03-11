@@ -1,0 +1,352 @@
+<!doctype html>
+<html>
+<head>
+    <title>Music streaming thing</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link type="text/css" href="//netdna.bootstrapcdn.com/bootswatch/3.1.1/flatly/bootstrap.min.css" rel="stylesheet">
+    <link type="text/css" href="css/styles.css" rel="stylesheet" />
+</head>
+
+<body>
+
+    <div class="container">
+        <div id="login">
+            <h1></h1>
+            <a href="/login" class="btn btn-primary">Log in with Spotify</a>
+        </div>
+        <div id="loggedin">
+            <div id="user-profile">
+            </div>
+            <div id="oauth">
+            </div>
+        </div>
+    </div>
+
+    <script id="user-profile-template" type="text/x-handlebars-template">
+        <h1>Logged in as {{display_name}}</h1>
+        <div class="media">
+            <div class="pull-left">
+                <img class="media-object" width="150" src="{{images.0.url}}" />
+            </div>
+        </div>
+
+        <div class='container font-light'>
+            <div id='content' class="col-md-offset-2 col-md-8">
+                <div id='seed' class='centered'>
+            <span> Seed artist:
+                <input title="Artist" type="text"  size=34 id="artist" name="artist" value='Daft Punk'/>
+            </span>
+                    <button class="btn btn-sm" value="go" id="go" name="go"> Go </button>
+                </div>
+                <div id="info"> </div>
+                <div id="all_results"> </div>
+                <div id='footer'>
+                    Powered by <a href="http://the.echonest.com">The Echo Nest</a> and <a href="http://spotify.com">Spotify</a>.
+                </div>
+            </div>
+        </div>
+    </script>
+
+
+    <script id="oauth-template" type="text/x-handlebars-template"></script>
+
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="js/spotify-echonest-tools.js"></script>
+    <script>
+        (function() {
+
+
+            var accessToken = null;
+            var currPlayer = null;
+            var spotifyApi  = {
+                profile_uri: 'https://api.spotify.com/v1/me',
+                library_uri: 'https://api.spotify.com/v1/me/tracks',
+                playlists_uri: 'https://api.spotify.com/v1/users/{user_id}/playlists',
+                playlists_tracks_uri: 'https://api.spotify.com/v1/users/{user_id}/playlists/{playlist_id}/tracks'
+            };
+
+            var user = {
+                accessToken: null,
+                refreshToken: null
+            };
+
+            var sessionId = null;
+
+            var config = getConfig();
+
+            /* Unique keys to artist data */
+            window.artists = {};
+
+            window.objToArray = function(o) {
+                return $.map(o, function(value, index) {
+                    return [value];
+                });
+            };
+
+            function getTemplateRequest(){
+                return {
+                    headers: {
+                        'Authorization': 'Bearer ' + user.accessToken
+                    }
+                };
+            }
+
+            function getLibrary(nextUrl) {
+                var request = getTemplateRequest();
+
+                if(typeof nextUrl !== 'undefined') {
+                    request.url = nextUrl;
+                } else {
+                    request.url = spotifyApi.library_uri + '?limit=50&offset=0';
+                }
+
+                request.success = function(response) {
+                    if(response.next) {
+                        getLibrary(response.next)
+                    }
+
+                    console.log("getLibrary response", response);
+                    for(var iItem = 0; iItem < response.items.length; iItem++){
+                        for(var iArtist = 0; iArtist < response.items[iItem].track.artists.length; iArtist++){
+                            var artistId = response.items[iItem].track.artists[iArtist].id;
+                            artists[artistId] = response.items[iItem].track.artists[iArtist];
+                        }
+                    }
+
+                    console.log("artists", artists);
+                };
+
+                $.ajax(request);
+            }
+
+            function getPlaylists(userId, nextUrl) {
+                var request = getTemplateRequest();
+
+                if(typeof nextUrl !== 'undefined') {
+                    request.url = nextUrl;
+                } else {
+                    request.url = spotifyApi.playlists_uri
+                            .replace('{user_id}', userId) + '?limit=50&offset=0';
+                }
+
+                request.success = function(response) {
+                    console.log('getPlaylists response', response);
+
+                    for(var iItem = 0; iItem < response.items.length; iItem++){
+                        var playlistId = response.items[iItem].id;
+                        getPlaylistsTracks(userId, playlistId);
+                    }
+
+
+                };
+
+                $.ajax(request);
+            }
+
+            function getPlaylistsTracks(userId, playlistId, nextUrl){
+                var request = getTemplateRequest();
+
+                if(typeof nextUrl !== 'undefined') {
+                    request.url = nextUrl;
+                } else {
+                    request.url = spotifyApi.playlists_tracks_uri
+                            .replace('{user_id}', userId)
+                            .replace('{playlist_id}', playlistId)
+                    + '?limit=100&offset=0';
+                }
+
+                request.success = function(response) {
+                    console.log('getPlaylistsTracks response', response);
+
+                    if(response.next) {
+                        getPlaylistsTracks(userId, playlistId, response.next)
+                    }
+
+                    for(var iItem = 0; iItem < response.items.length; iItem++){
+                        for(var iArtist = 0; iArtist < response.items[iItem].track.artists.length; iArtist++){
+                            var artistId = response.items[iItem].track.artists[iArtist].id;
+                            artists[artistId] = response.items[iItem].track.artists[iArtist];
+                        }
+                    }
+
+                    console.log("artists", artists);
+                };
+
+                $.ajax(request);
+            }
+
+            function banArtists(artistList){
+                console.log("banArtists", "entering...")
+
+                var artistUriBatches = chunk(Object.keys(artistList).map(function(artistIdKey){
+                    return 'spotify:artist:' + artistIdKey;
+                }), 100);
+
+
+                console.log("banArtists", artistUriBatches);
+
+                var url = getConfig().echoNestHost + 'api/v4/playlist/dynamic/feedback';
+                window.respCount = 0;
+
+                for(var iBatch = 0; iBatch < artistUriBatches.length; iBatch++){
+                    console.log('banArtists sending', iBatch);
+                    $.get(url, {
+                        'api_key': getConfig().apiKey,
+                        'session_id': sessionId,
+                        'ban_artist': artistUriBatches[iBatch],
+                        '_': Math.floor(Date.now())
+                    })
+                    .done(function(data) {
+                        //info("");
+                        console.log('banArtists data', data);
+                    })
+                    .error( function() {
+                        //info("Whoops, had some trouble getting that batch of songs");
+                                alert("SADFASf");
+                    })
+                    .always(function(){
+                        respCount++;
+                        console.log('banArtists respCount', respCount);
+                    })
+                }
+
+            }
+
+            function fetchArtistPlaylist(artist,  wandering, variety) {
+                var url = config.echoNestHost + 'api/v4/playlist/dynamic/create';
+                $("#all_results").empty();
+                info("Creating the playlist ...");
+                $.getJSON(url, { 'artist': artist,
+                    'api_key': config.apiKey,
+                    'bucket': [ 'id:' + config.spotifySpace, 'tracks'],
+                    'variety' : 1, results: 1, 'type':'artist-radio',  })
+                        .done(function(data) {
+                            info("");
+                            if (! ('songs' in data.response)) {
+                                info("Can't find that artist");
+                            } else {
+                                sessionId = data.response.session_id;
+                                var title = "Artist radio for " + artist;
+                                getSpotifyPlayer(sessionId, data.response.songs, function(player) {
+                                    console.log('got the player');
+                                    currPlayer = player;
+                                    $("#all_results").append(player);
+                                    console.log(player);
+                                    banArtists(artists);
+                                });
+                            }
+                        })
+                        .error( function() {
+                            info("Whoops, had some trouble getting that playlist");
+                        }) ;
+            }
+
+            function newArtist() {
+                var artist = $("#artist").val();
+                fetchArtistPlaylist(artist, false, .2);
+            }
+            function info(txt) {
+                $("#info").text(txt);
+            }
+
+            /**
+             * Obtains parameters from the hash of the URL
+             * @return Object
+             */
+            function getHashParams() {
+                var hashParams = {};
+                var e, r = /([^&;=]+)=?([^&;]*)/g,
+                        q = window.location.hash.substring(1);
+                while ( e = r.exec(q)) {
+                    hashParams[e[1]] = decodeURIComponent(e[2]);
+                }
+                return hashParams;
+            }
+
+
+            $(document).ready(function() {
+
+                var userProfileSource = document.getElementById('user-profile-template').innerHTML,
+                        userProfileTemplate = Handlebars.compile(userProfileSource),
+                        userProfilePlaceholder = document.getElementById('user-profile');
+
+                var oauthSource = document.getElementById('oauth-template').innerHTML,
+                        oauthTemplate = Handlebars.compile(oauthSource),
+                        oauthPlaceholder = document.getElementById('oauth');
+
+                var params = getHashParams()
+
+                user.accessToken = params.access_token;
+                user.refreshToken = params.refresh_token;
+                var error = params.error;
+
+                if (error) {
+                    alert('There was an error during the authentication');
+                } else {
+                    if (user.accessToken) {
+                        // render oauth info
+                        oauthPlaceholder.innerHTML = oauthTemplate({
+                            access_token: user.accessToken,
+                            refresh_token: user.refreshToken
+                        });
+
+                        $.ajax({
+                            url: spotifyApi.profile_uri,
+                            headers: {
+                                'Authorization': 'Bearer ' + user.accessToken
+                            },
+                            success: function(response) {
+                                userProfilePlaceholder.innerHTML = userProfileTemplate(response);
+
+                                $("#artist").on('keydown', function(evt) {
+                                    if (evt.keyCode == 13) {
+                                        newArtist();
+                                    }
+                                });
+
+                                $("#go").on("click", function() {
+                                    newArtist();
+                                });
+
+                                $('#login').hide();
+                                $('#loggedin').show();
+                                getLibrary();
+                                getPlaylists(response.id);
+                            }
+                        });
+                    } else {
+                        // render initial screen
+                        $('#login').show();
+                        $('#loggedin').hide();
+                    }
+
+                    document.getElementById('obtain-new-token').addEventListener('click', function() {
+                        $.ajax({
+                            url: '/refresh_token',
+                            data: {
+                                'refresh_token': user.refreshToken
+                            }
+                        }).done(function(data) {
+                            user.accessToken = data.access_token;
+                            oauthPlaceholder.innerHTML = oauthTemplate({
+                                access_token: user.accessToken,
+                                refresh_token: user.refreshToken
+                            });
+                        });
+                    }, false);
+                }
+
+
+            });
+
+
+        })();
+    </script>
+
+</body>
+</html>
+
