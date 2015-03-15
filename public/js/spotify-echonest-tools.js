@@ -39,11 +39,10 @@ function fidToSpid(fid) {
     return fields[fields.length - 1];
 }
 
-function getSpotifyPlayer(sessionId, inPlaylist, bannedArtistsList, callback) {
+function getSpotifyPlayer(sessionId, callback) {
     var curSong = 0;
     var audio = null;
     var player = createPlayer();
-    var bannedArtists = bannedArtistsList;
     window.playlist = [];
     var sessionId = sessionId;
 
@@ -54,6 +53,10 @@ function getSpotifyPlayer(sessionId, inPlaylist, bannedArtistsList, callback) {
             var tid = fidToSpid(song.tracks[0].foreign_id);
             tids.push(tid);
         });
+
+        if(tids.length == 0){
+            return;
+        }
 
         $.getJSON("https://api.spotify.com/v1/tracks/", { 'ids': tids.join(',')})
             .done(function(data) {
@@ -81,7 +84,7 @@ function getSpotifyPlayer(sessionId, inPlaylist, bannedArtistsList, callback) {
     }
 
     function getArtistFromSpotify(artistUri, callback){
-        $.getJSON("https://api.spotify.com/v1/track/" + fidToSpid(artistUri))
+        $.getJSON("https://api.spotify.com/v1/artists/" + fidToSpid(artistUri))
             .done(function(data) {
                 callback(data);
             })
@@ -101,26 +104,12 @@ function getSpotifyPlayer(sessionId, inPlaylist, bannedArtistsList, callback) {
             console.log('banArtists data', data);
         });
 
-        if(!bannedArtists.hasOwnProperty(fidToSpid(artistUri))){
-            getArtistFromSpotify(artistUri, function(artist){
-                bannedArtists[fidToSpid(artistUri)] = artist;
-
-            });
-        }
     }
 
     function filterSongs(songs) {
         var out = [];
 
         function isGoodSong(song) {
-            for(var iArtist = 0; iArtist < song.artist_foreign_ids.length; iArtist++){
-                if(bannedArtists.hasOwnProperty(fidToSpid(song.artist_foreign_ids[iArtist].foreign_id))){
-                    console.log('filterSongs artist banned', 'NOT IN MY HOUSE');
-                    banArtist(song.artist_foreign_ids[iArtist]);
-                    return false;
-                }
-            }
-
             return song.spotifyTrackInfo.preview_url != null;
         }
 
