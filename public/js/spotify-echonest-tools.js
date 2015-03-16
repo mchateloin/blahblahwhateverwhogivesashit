@@ -1,48 +1,17 @@
-jQuery.ajaxSettings.traditional = true;
-
-function getConfig() {
-    return {
-        apiKey: "ING7YKMEMYCTJJHGT",
-        spotifySpace: "spotify",
-        echoNestHost: "http://developer.echonest.com/"
-    };
-}
-
 /* Tools for making working with the Spotify and Echo Nest APIs easier */
-function getSpotifyPlayButtonForPlaylist(title, playlist) {
-    var embed = '<iframe src="https://embed.spotify.com/?uri=spotify:trackset:PREFEREDTITLE:TRACKS" style="width:640px; height:520px;" frameborder="0" allowtransparency="true"></iframe>';
-    var tids = [];
-    playlist.forEach(function(song) {
-        var tid = fidToSpid(song.tracks[0].foreign_id);
-        tids.push(tid);
-    });
-    var tracks = tids.join(',');
-    var tembed = embed.replace('TRACKS', tracks);
-    tembed = tembed.replace('PREFEREDTITLE', title);
-    var li = $("<span>").html(tembed);
-    return $("<span>").html(tembed);
-}
-
-function chunk(arr, nEach){
-    var i, j, temparr, out = [];
-    for (i = 0, j = arr.length; i < j; i += nEach) {
-        temparr = arr.slice(i, i+nEach);
-        out.push(temparr)
-    }
-    return out;
-}
 
 /* converts full URI to just the simple spotify id */
-
 function fidToSpid(fid) {
     var fields = fid.split(':');
     return fields[fields.length - 1];
 }
 
-function getSpotifyPlayer(sessionId, callback) {
+function getSpotifyPlayer(sessionId, seededArtists, callback) {
     var curSong = 0;
     var audio = null;
     var player = createPlayer();
+    var seeds = seededArtists;
+
     window.playlist = [];
     var sessionId = sessionId;
 
@@ -58,43 +27,36 @@ function getSpotifyPlayer(sessionId, callback) {
             return;
         }
 
-        $.getJSON("https://api.spotify.com/v1/tracks/", { 'ids': tids.join(',')})
-            .done(function(data) {
-                console.log('sptracks', tids, data);
-                data.tracks.forEach(function(track, i) {
-                    list[i].spotifyTrackInfo = track;
-                    console.log("trackinfo", list[i].spotifyTrackInfo);
-                });
+        var spotify = new SpotifyWebApi();
+        spotify.getTracks(tids).then(function(data){
+            console.log('sptracks', tids, data);
+            data.tracks.forEach(function(track, i) {
+                list[i].spotifyTrackInfo = track;
+                console.log("trackinfo", list[i].spotifyTrackInfo);
+            });
 
-                console.log('addSpotifyInfoToPlaylist list', list);
-                var filtered = filterSongs(list);
-                console.log('addSpotifyInfoToPlaylist filtered', filtered);
-                playlist = playlist.concat(filtered);
-                console.log('addSpotifyInfoToPlaylist playlist', playlist);
+            console.log('addSpotifyInfoToPlaylist list', list);
+            var filtered = filterSongs(list);
+            console.log('addSpotifyInfoToPlaylist filtered', filtered);
+            playlist = playlist.concat(filtered);
+            console.log('addSpotifyInfoToPlaylist playlist', playlist);
 
-                //Some initialization only logic
-                if(curSong === 0) {
-                    showCurSong(false);
-                    callback(player);
-                }
-            })
-            .error( function() {
-                info("Whoops, had some trouble getting that playlist");
-            }) ;
+            //Some initialization only logic
+            if(curSong === 0) {
+                showCurSong(true);
+                callback(player);
+            }
+        }).catch(function(error) {
+            info("Whoops, had some trouble getting that playlist");
+        });
     }
 
-    function getArtistFromSpotify(artistUri, callback){
-        $.getJSON("https://api.spotify.com/v1/artists/" + fidToSpid(artistUri))
-            .done(function(data) {
-                callback(data);
-            })
-    }
 
     function banArtist(artistUri){
         console.log("banArtist", "entering...");
-        var url = getConfig().echoNestHost + 'api/v4/playlist/dynamic/feedback';
+        var url = config.echoNestHost + 'api/v4/playlist/dynamic/feedback';
         $.get(url, {
-            'api_key': getConfig().apiKey,
+            'api_key': config.apiKey,
             'session_id': sessionId,
             'ban_artist': artistUri,
             '_': Math.floor(Date.now())
@@ -110,7 +72,21 @@ function getSpotifyPlayer(sessionId, callback) {
         var out = [];
 
         function isGoodSong(song) {
-            return song.spotifyTrackInfo.preview_url != null;
+            if(song.spotifyTrackInfo.preview_url != null){
+                return false;
+            }
+
+            for(var iSeed = 0; iSeed < seededArtists.length; iSeed++){
+                for(var iArtist = 0; iArtist < song.artist_foreign_ids.length; iArtist++){
+                    console.log("checking", seededArtists[iSeed].uri, song.artist_foreign_ids[iArtist].foreign_id);
+                    if(seededArtists[iSeed].uri === song.artist_foreign_ids[iArtist].foreign_id){
+                        return false;
+                    }
+                }
+
+            }
+
+            return true;
         }
 
         songs.forEach(function(song) {
@@ -164,10 +140,10 @@ function getSpotifyPlayer(sessionId, callback) {
     }
 
     function fetchNextTracks(){
-        console.log("fetchNextTracks", "entering...")
-        var url = getConfig().echoNestHost + 'api/v4/playlist/dynamic/next';
+        console.log("fetchNextTracks", "entering...");
+        var url = config.echoNestHost + 'api/v4/playlist/dynamic/next';
         $.getJSON(url, {
-                'api_key': getConfig().apiKey,
+                'api_key': config.apiKey,
                 results: 1,
                 'session_id': sessionId,
                 '_': Math.floor(Date.now())

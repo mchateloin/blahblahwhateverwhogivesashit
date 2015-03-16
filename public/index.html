@@ -34,7 +34,7 @@
             <div id='content' class="col-md-offset-2 col-md-8">
                 <div id='seed' class='centered'>
             <span> Seed artist:
-                <input title="Artist" type="text"  size=34 id="artist" name="artist" value='daft punk,kavinsky,justice'/>
+                <input title="Artist" type="text"  size=34 id="artist" name="artist" value='Daft Punk,Kavinsky,Justice'/>
             </span>
                     <button class="btn btn-sm" value="go" id="go" name="go"> Go </button>
                 </div>
@@ -55,150 +55,139 @@
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
     <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="js/q.js"></script>
+    <script src="js/spotify-web-api.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
     <script src="js/spotify-echonest-tools.js"></script>
     <script>
-        (function() {
+        (function(SpotifyWebApi) {
 
+            window.currPlayer = null;
 
-            var accessToken = null;
-            var currPlayer = null;
             window.tasteProfile = {
                 current: null
             };
 
-            var spotifyApi  = {
-                profile_uri: 'https://api.spotify.com/v1/me',
-                library_uri: 'https://api.spotify.com/v1/me/tracks',
-                playlists_uri: 'https://api.spotify.com/v1/users/{user_id}/playlists',
-                playlists_tracks_uri: 'https://api.spotify.com/v1/users/{user_id}/playlists/{playlist_id}/tracks'
-            };
-            var user = {
+            window.user = {
                 accessToken: null,
                 refreshToken: null
             };
 
-            var sessionId = null;
-
-            var config = getConfig();
+            window.sessionId = null;
 
             /* Unique keys to artist data */
             window.artists = {};
+            window.spotify = new SpotifyWebApi();
+            spotify.setPromiseImplementation(Q);
 
-            window.findArtist = function(name){
-                return findObjectByAttribute(objToArray(artists), "name", name);
-            };
+            spotify.loadArtistsFromPlaylists = function(userId) {
 
-            window.objToArray = function(o) {
-                return $.map(o, function(value, index) {
-                    return [value];
+                var pageReqs = [];
+
+                var firstReq = spotify.getUserPlaylists(userId, {
+                    limit: 50
+                });
+
+                pageReqs.push(firstReq);
+
+                firstReq.done(function (firstPage) {
+                    for (var offset = firstPage.limit; offset < firstPage.total; offset += firstPage.limit) {
+                        pageReqs.push(spotify.getUserPlaylists(userId, {
+                            limit: limit,
+                            offset: offset
+                        }));
+                    }
+
+                    Q.all(pageReqs).done(function(data){
+                        var playlists = [].concat.apply([], data.map(function(resp){
+                            return resp.items;
+                        }));
+                        console.log('all playlists', playlists);
+                        for(var iItem = 0; iItem < playlists.length; iItem++){
+                            spotify.loadArtistsFromPlaylistItem(userId, playlists[iItem]);
+                        }
+                    },function(err){
+
+                    });
+
                 });
             };
 
+            spotify.loadArtistsFromPlaylistItem = function(userId, playlistItem){
 
-            window.findObjectByAttribute = function(items, attribute, value){
-                for (var i = 0; i < items.length; i++) {
-                    if (items[i][attribute] === value) {
-                        return items[i];
+                var pageReqs = [],
+                    firstReq = spotify.getPlaylistTracks(userId, playlistItem.id, {
+                        limit: 50
+                    });
+
+                pageReqs.push(firstReq);
+
+                firstReq.done(function (firstPage) {
+                    for (var offset = firstPage.limit; offset < firstPage.total; offset += firstPage.limit) {
+                        pageReqs.push(spotify.getPlaylistTracks(userId, playlistItem.id, {
+                            limit: firstPage.limit,
+                            offset: offset
+                        }));
                     }
-                }
-                return null;
+
+                    Q.all(pageReqs).done(function(data){
+                        var tracks = [].concat.apply([], data.map(function(resp){
+                            return resp.items;
+                        }));
+                        console.log('all playlist(' + playlistItem.name + ') tracks', tracks);
+                        spotify.loadArtistsFromTrackItemList(tracks);
+                    },function(err){
+
+                    });
+
+                });
+
             };
 
-            function getTemplateRequest(){
-                return {
-                    headers: {
-                        'Authorization': 'Bearer ' + user.accessToken
+            spotify.loadArtistsFromLibrary = function() {
+                var pageReqs = [];
+
+                var firstReq = spotify.getMySavedTracks({
+                    limit: 50
+                });
+
+                pageReqs.push(firstReq);
+
+                firstReq.done(function (firstPage) {
+                    for (var offset = firstPage.limit; offset < firstPage.total; offset += firstPage.limit) {
+                        pageReqs.push(spotify.getMySavedTracks({
+                            limit: firstPage.limit,
+                            offset: offset
+                        }));
                     }
-                };
-            }
 
-            function getLibrary(nextUrl) {
-                var request = getTemplateRequest();
+                    Q.all(pageReqs).done(function(data){
+                        var tracks = [].concat.apply([], data.map(function(resp){
+                            return resp.items;
+                        }));
+                        console.log('all library tracks', tracks);
+                        spotify.loadArtistsFromTrackItemList(tracks);
+                    },function(err){
 
-                if(typeof nextUrl !== 'undefined') {
-                    request.url = nextUrl;
-                } else {
-                    request.url = spotifyApi.library_uri + '?limit=50&offset=0';
+                    });
+
+                });
+
+            };
+
+            spotify.loadArtistsFromTrackItemList = function (trackItems){
+                for(var iItem = 0; iItem < trackItems.length; iItem++){
+                    spotify.loadArtistsFromTrackItem(trackItems[iItem]);
                 }
+            };
 
-                request.success = function(response) {
-                    if(response.next) {
-                        getLibrary(response.next)
-                    }
-
-                    console.log("getLibrary response", response);
-                    for(var iItem = 0; iItem < response.items.length; iItem++){
-                        for(var iArtist = 0; iArtist < response.items[iItem].track.artists.length; iArtist++){
-                            var artistId = response.items[iItem].track.artists[iArtist].id;
-                            artists[artistId] = response.items[iItem].track.artists[iArtist];
-                        }
-                    }
-
-                    console.log("artists", artists);
-                };
-
-                $.ajax(request);
-            }
-
-            function getPlaylists(userId, nextUrl) {
-                var request = getTemplateRequest();
-
-                if(typeof nextUrl !== 'undefined') {
-                    request.url = nextUrl;
-                } else {
-                    request.url = spotifyApi.playlists_uri
-                            .replace('{user_id}', userId) + '?limit=50&offset=0';
+            spotify.loadArtistsFromTrackItem = function(trackItem){
+                for(var iArtist = 0; iArtist < trackItem.track.artists.length; iArtist++){
+                    var artistId = trackItem.track.artists[iArtist].id;
+                    artists[artistId] = trackItem.track.artists[iArtist];
                 }
-
-                request.success = function(response) {
-                    console.log('getPlaylists response', response);
-
-                    for(var iItem = 0; iItem < response.items.length; iItem++){
-                        var playlistId = response.items[iItem].id;
-                        getPlaylistsArtists(userId, playlistId);
-                    }
-
-
-                };
-
-                $.ajax(request);
-            }
-
-            function getPlaylistsArtists(userId, playlistId, nextUrl){
-                var request = getTemplateRequest();
-
-                if(typeof nextUrl !== 'undefined') {
-                    request.url = nextUrl;
-                } else {
-                    request.url = spotifyApi.playlists_tracks_uri
-                            .replace('{user_id}', userId)
-                            .replace('{playlist_id}', playlistId)
-                    + '?limit=100&offset=0';
-                }
-
-                request.success = function(response) {
-                    console.log('getPlaylistsTracks response', response);
-
-                    if(response.next) {
-                        getPlaylistsArtists(userId, playlistId, response.next)
-                    }
-
-                    for(var iItem = 0; iItem < response.items.length; iItem++){
-                        for(var iArtist = 0; iArtist < response.items[iItem].track.artists.length; iArtist++){
-                            var artistId = response.items[iItem].track.artists[iArtist].id;
-                            artists[artistId] = response.items[iItem].track.artists[iArtist];
-                        }
-                    }
-
-                    console.log("artists", artists);
-                };
-
-                $.ajax(request);
-            }
-
-
-
-
+            };
 
             function fetchArtistPlaylist(artist,  wandering, variety) {
 
@@ -212,8 +201,34 @@
                 })
                 .done(function(data) {
                     tasteProfile.current = data.response;
-                            var tasteItems =
-                            Object.keys(artists).map(function(artistKeyAndId){
+
+                            var seededArtists = artist.split(',').map(function(name){
+                                var seed = findArtist(name);
+                                console.log("that seed!", seed);
+                                if(seed){
+                                    console.log("before", Object.keys(artists).length);
+                                    var a = artists[seed.id];
+                                    delete artists[seed.id];
+                                    console.log("after", Object.keys(artists).length);
+                                    return a;
+                                }
+                            });
+
+                            var favoritedArtists = artist.split(',').map(function(name){
+                                return {
+                                    'action': 'update',
+                                    'item': {
+                                        item_id: ++counter + '-' + name,
+                                        'artist_name': name,
+                                        'favorite': true
+                                    }
+                                }
+                            });
+
+                            console.log("the seeded guys", favoritedArtists);
+                            console.log("totally after", Object.keys(artists).length);
+
+                            var tasteItems = Object.keys(artists).map(function(artistKeyAndId){
                                 return {
                                     action: 'update',
                                     item: {
@@ -223,37 +238,8 @@
                                     }
                                 };
                             })
+                            .concat(favoritedArtists);
 
-                              .concat(artist.split(',').map(function(name){
-                                return {
-                                    'action': 'update',
-                                    'item': {
-                                        item_id: ++counter + '-' + artist,
-                                        'artist_name': artist,
-                                        'favorite': true
-                                    }
-                                }
-                            }));
-
-                            /*
-                            var tasteItems = Object.keys(artists).map(function(artistKeyAndId){
-                                return {
-                                    action: 'update',
-                                    item: {
-                                        artist_id: 'spotify:artist:' + artistKeyAndId,
-                                        banned: true
-                                    }
-                                };
-                            });
-                                    tasteItems.push({
-                                'action': 'update',
-                                'item':{
-                                    'artist_name': artist
-                                }
-                            });
-                            */
-
-                            var ready = false;
                             var checkStatus = function(ticket){
                                 $.getJSON(config.echoNestHost + 'api/v4/tasteprofile/status',{
                                     'api_key': config.apiKey,
@@ -287,7 +273,7 @@
                                             info("");
                                             sessionId = data.response.session_id;
                                             var title = "Artist radio for " + artist;
-                                            getSpotifyPlayer(sessionId, function(player) {
+                                            getSpotifyPlayer(sessionId, seededArtists, function(player) {
                                                 console.log('got the player');
                                                 currPlayer = player;
                                                 $("#all_results").append(player);
@@ -304,22 +290,21 @@
 
                             var tasteUpdateUrl = config.echoNestHost + 'api/v4/tasteprofile/update?';
                             $.post(tasteUpdateUrl, {
-                                        'api_key': config.apiKey,
-                                        'id': tasteProfile.current.id,
-                                        'data': JSON.stringify(tasteItems)
-                                    })
-                                    .done(function(data) {
+                                'api_key': config.apiKey,
+                                'id': tasteProfile.current.id,
+                                'data': JSON.stringify(tasteItems)
+                            })
+                            .done(function(data) {
 
-                                        checkStatus(data.response.ticket);
+                                checkStatus(data.response.ticket);
 
-                                        alert("Asdfasdf");
-                                        console.log("tasteprofile updated with banned artists", data);
+                                console.log("tasteprofile updated with banned artists", data);
 
 
-                                    })
-                                    .error( function() {
-                                        info("Whoops, had some trouble getting that playlist");
-                                    }) ;
+                            })
+                            .error( function() {
+                                info("Whoops, had some trouble getting that playlist");
+                            }) ;
                 });
 
             }
@@ -328,6 +313,7 @@
                 var artist = $("#artist").val();
                 fetchArtistPlaylist(artist, false, .2);
             }
+
             function info(txt) {
                 $("#info").text(txt);
             }
@@ -347,18 +333,15 @@
             }
 
 
+
+
             $(document).ready(function() {
 
                 var userProfileSource = document.getElementById('user-profile-template').innerHTML,
                         userProfileTemplate = Handlebars.compile(userProfileSource),
                         userProfilePlaceholder = document.getElementById('user-profile');
 
-                var oauthSource = document.getElementById('oauth-template').innerHTML,
-                        oauthTemplate = Handlebars.compile(oauthSource),
-                        oauthPlaceholder = document.getElementById('oauth');
-
                 var params = getHashParams();
-
                 user.accessToken = params.access_token;
                 user.refreshToken = params.refresh_token;
                 var error = params.error;
@@ -367,63 +350,43 @@
                     alert('There was an error during the authentication');
                 } else {
                     if (user.accessToken) {
-                        // render oauth info
-                        oauthPlaceholder.innerHTML = oauthTemplate({
-                            access_token: user.accessToken,
-                            refresh_token: user.refreshToken
-                        });
+                        //user.refreshToken
 
-                        $.ajax({
-                            url: spotifyApi.profile_uri,
-                            headers: {
-                                'Authorization': 'Bearer ' + user.accessToken
-                            },
-                            success: function(response) {
-                                userProfilePlaceholder.innerHTML = userProfileTemplate(response);
+                        spotify.setAccessToken(user.accessToken);
+                        spotify.loadArtistsFromLibrary();
+                        spotify.getMe().then(function(response){
+                            userProfilePlaceholder.innerHTML = userProfileTemplate(response);
 
-                                $("#artist").on('keydown', function(evt) {
-                                    if (evt.keyCode == 13) {
-                                        newArtist();
-                                    }
-                                });
-
-                                $("#go").on("click", function() {
+                            $("#artist").on('keydown', function(evt) {
+                                if (evt.keyCode == 13) {
                                     newArtist();
-                                });
+                                }
+                            });
 
-                                $('#login').hide();
-                                $('#loggedin').show();
-                                getLibrary();
-                                getPlaylists(response.id);
-                            }
-                        });
+                            $("#go").on("click", function() {
+                                newArtist();
+                            });
+
+                            $('#login').hide();
+                            $('#loggedin').show();
+
+
+                            spotify.loadArtistsFromPlaylists(response.id);
+                        })
+
                     } else {
                         // render initial screen
                         $('#login').show();
                         $('#loggedin').hide();
                     }
 
-                    document.getElementById('obtain-new-token').addEventListener('click', function() {
-                        $.ajax({
-                            url: '/refresh_token',
-                            data: {
-                                'refresh_token': user.refreshToken
-                            }
-                        }).done(function(data) {
-                            user.accessToken = data.access_token;
-                            oauthPlaceholder.innerHTML = oauthTemplate({
-                                access_token: user.accessToken,
-                                refresh_token: user.refreshToken
-                            });
-                        });
-                    }, false);
                 }
 
 
             });
 
 
-        })();
+        })(SpotifyWebApi);
     </script>
 
 </body>
