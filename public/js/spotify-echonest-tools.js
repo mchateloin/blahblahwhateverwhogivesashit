@@ -20,8 +20,19 @@ function getSpotifyPlayer(sessionId, seededArtists, callback) {
         var tids = [];
         list.forEach(function(song) {
             var tid = fidToSpid(song.tracks[0].foreign_id);
+            console.log("adding info", song);
             tids.push(tid);
         });
+
+        /*list.forEach(function(song) {
+         if(song.tracks.length !== 0){
+             for(var iTrack = 0; iTrack < song.tracks.length; iTrack++){
+                 var tid = fidToSpid(song.tracks[iTrack].foreign_id);
+                 tids.push(tid);
+             }
+         }
+        });*/
+
 
         if(tids.length == 0){
             return;
@@ -145,7 +156,7 @@ function getSpotifyPlayer(sessionId, seededArtists, callback) {
         var url = config.echoNestHost + 'api/v4/playlist/dynamic/next';
         $.getJSON(url, {
                 'api_key': config.apiKey,
-                results: 1,
+                results: 5,
                 'session_id': sessionId,
                 '_': Math.floor(Date.now())
             })
