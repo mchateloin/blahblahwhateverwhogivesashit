@@ -10,7 +10,7 @@ window.objToArray = function(o) {
 
 window.findObjectByStringAttribute = function(items, attribute, value){
     for (var i = 0; i < items.length; i++) {
-        if (typeof items[i][attribute] === 'string' && items[i][attribute].toLowerCase() === value.toLowerCase()) {
+        if (typeof items[i][attribute].toLowerCase() && items[i][attribute].toLowerCase() === value.toLowerCase()) {
             return items[i];
         }
     }

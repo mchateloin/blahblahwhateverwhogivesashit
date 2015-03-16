@@ -13,15 +13,18 @@ function getSpotifyPlayer(sessionId, seededArtists, callback) {
     var seeds = seededArtists;
 
     window.playlist = [];
+    window.playlistExport = [];
     var sessionId = sessionId;
 
     function addSpotifyInfoToPlaylist(list) {
 
         var tids = [];
         list.forEach(function(song) {
-            var tid = fidToSpid(song.tracks[0].foreign_id);
-            console.log("adding info", song);
-            tids.push(tid);
+            if(song.tracks.length !== 0){
+                var tid = fidToSpid(song.tracks[0].foreign_id);
+                console.log("adding info", song);
+                tids.push(tid);
+            }
         });
 
         /*list.forEach(function(song) {
@@ -197,6 +200,29 @@ function getSpotifyPlayer(sessionId, seededArtists, callback) {
         }
     }
 
+    function getDynamicPlaylistUpTo(max, callback){
+        console.log("getDynamicPlaylistUpTo entering", max);
+
+        var url = config.echoNestHost + 'api/v4/playlist/dynamic/next';
+        $.getJSON(url, {
+            'api_key': config.apiKey,
+            results: 5,
+            'session_id': sessionId,
+            '_': Math.floor(Date.now())
+        }).then(function(data) {
+            console.log("getDynamicPlaylistUpTo let's try adding these", data);
+            //info("");
+
+            if(playlist.length >= max){
+                console.log("getDynamicPlaylistUpTo we're done", playlist.length, playlist.slice(0, max));
+                callback(playlist.slice(0, max));
+            } else {
+                addSpotifyInfoToPlaylist(data.response.songs);
+                getDynamicPlaylistUpTo(max, callback);
+            }
+        });
+    }
+
     function createPlayer() {
         var main = $("<div class='sp-player'>");
         var img = $("<img class='sp-album-art'>");
@@ -244,6 +270,8 @@ function getSpotifyPlayer(sessionId, seededArtists, callback) {
             for(var iArtist = 0; iArtist < playlist[curSong].artist_foreign_ids.length; iArtist++){
                 banArtist(fidToSpid(playlist[curSong].artist_foreign_ids[iArtist].foreign_id));
             }
+            playlist.splice(curSong, curSong);
+            curSong++;
             nextSong();
         });
 
@@ -263,6 +291,9 @@ function getSpotifyPlayer(sessionId, seededArtists, callback) {
             console.log('player destroyed');
             audio.pause();
         });
+
+        main.getDynamicPlaylistUpTo = getDynamicPlaylistUpTo;
+
         return main;
     }
 

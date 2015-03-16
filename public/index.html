@@ -40,6 +40,7 @@
                 </div>
                 <div id="info"> </div>
                 <div id="all_results"> </div>
+                <a href="javascript:void(0)" class="btn btn-primary export spotify" style="display: none;">Export to Spotify</a>
                 <div id='footer'>
                     Powered by <a href="http://the.echonest.com">The Echo Nest</a> and <a href="http://spotify.com">Spotify</a>.
                 </div>
@@ -81,6 +82,21 @@
             window.spotify = new SpotifyWebApi();
             spotify.setPromiseImplementation(Q);
 
+            spotify.createPlaylistFromRadio = function(userId){
+                spotify.createPlaylist(userId, {
+                    name: Math.floor(Date.now())
+                }).then(function(playlist){
+                    currPlayer.getDynamicPlaylistUpTo(40, function(exportedSongs){
+                        console.log("all right let's add tracks!");
+                        spotify.addTracksToPlaylist(userId, playlist.id, exportedSongs.map(function(s){
+                            return s.spotifyTrackInfo.uri;
+                        })).then(function(data){
+                            alert("Done!");
+                        });
+                    });
+                });
+            };
+
             spotify.loadArtistsFromPlaylists = function(userId) {
 
                 var pageReqs = [];
@@ -94,7 +110,7 @@
                 firstReq.done(function (firstPage) {
                     for (var offset = firstPage.limit; offset < firstPage.total; offset += firstPage.limit) {
                         pageReqs.push(spotify.getUserPlaylists(userId, {
-                            limit: limit,
+                            limit: firstPage.limit,
                             offset: offset
                         }));
                     }
@@ -266,23 +282,25 @@
                                     'bucket': [ 'id:' + config.spotifySpace, 'tracks'],
                                     'variety' : 1,
                                     'adventurousness': 1,
+                                    'distribution': 'wandering',
                                     results: 0,
                                     'type':'catalog-radio'
                                 })
-                                        .done(function(data) {
-                                            info("");
-                                            sessionId = data.response.session_id;
-                                            var title = "Artist radio for " + artist;
-                                            getSpotifyPlayer(sessionId, seededArtists, function(player) {
-                                                console.log('got the player');
-                                                currPlayer = player;
-                                                $("#all_results").append(player);
-                                                console.log(player);
-                                            });
-                                        })
-                                        .error( function() {
-                                            info("Whoops, had some trouble getting that playlist");
-                                        }) ;
+                                .done(function(data) {
+                                    info("");
+                                    sessionId = data.response.session_id;
+                                    var title = "Artist radio for " + artist;
+                                    getSpotifyPlayer(sessionId, seededArtists, function(player) {
+                                        console.log('got the player');
+                                        currPlayer = player;
+                                        $("#all_results").append(player);
+                                        console.log(player);
+                                        $(".export.spotify").show();
+                                    });
+                                })
+                                .error( function() {
+                                    info("Whoops, had some trouble getting that playlist");
+                                }) ;
                             };
 
                             console.log(tasteItems);
@@ -332,9 +350,6 @@
                 return hashParams;
             }
 
-
-
-
             $(document).ready(function() {
 
                 var userProfileSource = document.getElementById('user-profile-template').innerHTML,
@@ -365,6 +380,10 @@
 
                             $("#go").on("click", function() {
                                 newArtist();
+                            });
+
+                            $(".export.spotify").on("click", function(){
+                                spotify.createPlaylistFromRadio(response.id);
                             });
 
                             $('#login').hide();
