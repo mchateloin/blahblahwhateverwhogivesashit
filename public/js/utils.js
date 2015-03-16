@@ -1,5 +1,5 @@
 window.findArtist = function(name){
-    return findObjectByAttribute(objToArray(artists), "name", name);
+    return findObjectByStringAttribute(objToArray(artists), "name", name);
 };
 
 window.objToArray = function(o) {
@@ -8,10 +8,9 @@ window.objToArray = function(o) {
     });
 };
 
-
-window.findObjectByAttribute = function(items, attribute, value){
+window.findObjectByStringAttribute = function(items, attribute, value){
     for (var i = 0; i < items.length; i++) {
-        if (items[i][attribute] === value) {
+        if (typeof items[i][attribute] === 'string' && items[i][attribute].toLowerCase() === value.toLowerCase()) {
             return items[i];
         }
     }
