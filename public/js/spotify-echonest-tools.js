@@ -72,7 +72,7 @@ function getSpotifyPlayer(sessionId, seededArtists, callback) {
         var out = [];
 
         function isGoodSong(song) {
-            if(song.spotifyTrackInfo.preview_url != null){
+            if(!song.spotifyTrackInfo.preview_url){
                 return false;
             }
 
@@ -103,6 +103,7 @@ function getSpotifyPlayer(sessionId, seededArtists, callback) {
         $(player).find(".sp-title").text(song.title);
         $(player).find(".sp-artist").text(song.artist_name);
         audio.attr('src', song.spotifyTrackInfo.preview_url);
+        console.log("that song!", song);
         if (autoplay) {
             audio.get(0).play();
         }
