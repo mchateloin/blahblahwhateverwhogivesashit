@@ -34,6 +34,10 @@ var app = express();
 app.use(express.static(__dirname + '/public'))
     .use(cookieParser());
 
+app.get('/mockup', function(req, res){
+    res.sendfile('public/mockup.html');
+});
+
 app.get('/login', function(req, res) {
 
     var state = generateRandomString(16);

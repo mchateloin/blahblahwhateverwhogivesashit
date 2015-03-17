@@ -9,7 +9,7 @@
 		<link rel="stylesheet" href="css/bootstrap-social-icons.css">
 		<link type="text/css" href="css/font-awesome.min.css" rel="stylesheet" />
 		<link type="text/css" href="css/styles.css" rel="stylesheet" />
-		<link type="text/css" href="css/jquery.fullpage.css" rel="stylesheet"/>
+		<link type="text/css" href="css/jquery.fullPage.css" rel="stylesheet"/>
 	</head>
 	<body>
 		<!--
@@ -24,9 +24,12 @@
 			<div class="section " id="r">
 				<h1>Give us your entire music collection. So we can ignore it.</h1>
 				<p>We'll give you a radio/playlist based on your tastes while banning everything you already know. Go on, adventure awaits.</p>
-				<a href="#" class="btn azm-social azm-size-64 azm-circle azm-long-shadow azm-spotify"><i class="fa fa-spotify"></i></a>
-				<a href="#" class="btn azm-social azm-size-64 azm-circle azm-long-shadow azm-lastfm"><i class="fa fa-lastfm"></i></a>
-				<a href="#" class="btn azm-social azm-size-64 azm-circle azm-long-shadow azm-soundcloud"><i class="fa fa-soundcloud"></i></a>
+				<a href="/login" id="spotify-login" class="btn azm-social azm-size-64 azm-circle azm-long-shadow azm-spotify">
+                    <i class="fa fa-spotify"></i>
+                </a>
+				<a href="#" id="lastfm-login" class="btn azm-social azm-size-64 azm-circle azm-long-shadow azm-lastfm">
+                    <i class="fa fa-lastfm"></i>
+                </a>
 			</div>
 			<div class="section" id="section1">
 				<div class="intro">
@@ -72,7 +75,7 @@
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 		<script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-		<script src="js/jquery.fullpage.js"></script>
+		<script src="js/jquery.fullPage.js"></script>
 		<script type="text/javascript">
 			$(document).ready(function() {
 				$('#fullpage').fullpage({

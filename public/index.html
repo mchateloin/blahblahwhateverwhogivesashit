@@ -2,33 +2,43 @@
 <html>
 <head>
     <title>Music streaming thing</title>
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-    <link type="text/css" href="//netdna.bootstrapcdn.com/bootswatch/3.1.1/flatly/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link type="text/css" href="http://netdna.bootstrapcdn.com/bootswatch/3.1.1/flatly/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700">
+    <link href='http://fonts.googleapis.com/css?family=Roboto:400,100,300,100italic,300italic,900italic,900,700italic,700,500italic,500,400italic' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="css/bootstrap-social-icons.css">
+    <link type="text/css" href="css/font-awesome.min.css" rel="stylesheet" />
     <link type="text/css" href="css/styles.css" rel="stylesheet" />
+    <link type="text/css" href="css/jquery.fullPage.css" rel="stylesheet"/>
 </head>
-
 <body>
 
-    <div class="container">
-        <div id="login">
-            <h1></h1>
-            <a href="/login" class="btn btn-primary">Log in with Spotify</a>
+<div id="fullpage">
+    <div class="section " id="connect">
+        <h1>Give us your entire music collection. So we can ignore it.</h1>
+        <p>We'll give you a playlist based on your tastes while banning artists you. Go on, adventure awaits.</p>
+
+        <a href="/login" id="spotify-login" class="btn azm-social azm-size-64 azm-circle azm-long-shadow azm-spotify">
+            <i class="fa fa-spotify"></i>
+        </a>
+        <a href="#" disabled id="spotify-loggedin" class="btn azm-social azm-size-64 azm-circle azm-long-shadow azm-spotify">
+            <img class="media-object" src=""/>
+        </a>
+
+        <a href="#" style="opacity: 0.3" disabled="true" id="lastfm-login" class="btn azm-social azm-size-64 azm-circle azm-long-shadow azm-lastfm">
+            <i class="fa fa-lastfm"></i>
+        </a>
+        <div class=".controls">
+            <a class="next" href="#seed"><i class="fa fa-angle-down"></i></a>
         </div>
-        <div id="loggedin">
-            <div id="user-profile">
-            </div>
-            <div id="oauth">
-            </div>
-        </div>
+
     </div>
+    <div class ="section" id="seed">
+        asfsafsafasfasf
+    </div>
+</div>
 
     <script id="user-profile-template" type="text/x-handlebars-template">
-        <h1>Logged in as {{display_name}}</h1>
-        <div class="media">
-            <div class="pull-left">
-                <img class="media-object" width="150" src="{{images.0.url}}" />
-            </div>
-        </div>
 
         <div class='container font-light'>
             <div id='content' class="col-md-offset-2 col-md-8">
@@ -64,22 +74,20 @@
     <script>
         (function(SpotifyWebApi) {
 
-            window.currPlayer = null;
-
-            window.tasteProfile = {
-                current: null
-            };
-
-            window.user = {
-                accessToken: null,
-                refreshToken: null
-            };
-
-            window.sessionId = null;
+            var currPlayer = null,
+                tasteProfile = {
+                    current: null
+                },
+                user = {
+                    accessToken: null,
+                    refreshToken: null
+                },
+                sessionId = null,
+                spotify = new SpotifyWebApi();
 
             /* Unique keys to artist data */
             window.artists = {};
-            window.spotify = new SpotifyWebApi();
+
             spotify.setPromiseImplementation(Q);
 
             spotify.createPlaylistFromRadio = function(userId){
@@ -352,10 +360,6 @@
 
             $(document).ready(function() {
 
-                var userProfileSource = document.getElementById('user-profile-template').innerHTML,
-                        userProfileTemplate = Handlebars.compile(userProfileSource),
-                        userProfilePlaceholder = document.getElementById('user-profile');
-
                 var params = getHashParams();
                 user.accessToken = params.access_token;
                 user.refreshToken = params.refresh_token;
@@ -370,7 +374,6 @@
                         spotify.setAccessToken(user.accessToken);
                         spotify.loadArtistsFromLibrary();
                         spotify.getMe().then(function(response){
-                            userProfilePlaceholder.innerHTML = userProfileTemplate(response);
 
                             $("#artist").on('keydown', function(evt) {
                                 if (evt.keyCode == 13) {
@@ -386,8 +389,11 @@
                                 spotify.createPlaylistFromRadio(response.id);
                             });
 
-                            $('#login').hide();
-                            $('#loggedin').show();
+                            $('#spotify-loggedin').css('display', 'inline-block');
+                            $('#spotify-loggedin img').attr("src", response.images[0].url);
+                            $('#spotify-login').hide();
+
+
 
 
                             spotify.loadArtistsFromPlaylists(response.id);
@@ -395,8 +401,8 @@
 
                     } else {
                         // render initial screen
-                        $('#login').show();
-                        $('#loggedin').hide();
+                        $('#spotify-login').css('display', 'inline-block');
+                        $('#spotify-loggedin').hide();
                     }
 
                 }

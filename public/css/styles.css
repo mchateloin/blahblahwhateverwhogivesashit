@@ -85,8 +85,20 @@ h2 {
     margin-right:auto;
 }
 
-#login, #loggedin {
+#spotify-login, #spotify-loggedin {
     display: none;
+}
+
+#spotify-loggedin{
+    padding: 0;
+}
+
+.section .next{
+
+}
+
+#connect.section .next{
+
 }
 
 .text-overflow {
