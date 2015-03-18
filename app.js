@@ -5,11 +5,13 @@ var cookieParser = require('cookie-parser');
 
 var spotify_client_id = 'dd2fe3ab80ba4853a0b3c6dd6c919e3d'; // Your client id
 var spotify_client_secret = '4902c49e25fa49d092989d579b0cd1c8'; // Your client secret
+var spotify_callback_url = 'http://localhost:8888/spotify/callback';
+var lastfm_api_key = 'dfcfa1d46b9c653c708b7840f98f7b1f'
+var lastfm_secret =  '5cc262f75a83de702aff7e3ec28d3f27'
+var lastfm_callback_url = 'http://localhost:8888/lastfm/callback';
 var echonest_api_key = 'ING7YKMEMYCTJJHGT';
 var echonest_consumer_key = 'e45e7b50ea464e12e8b6dbde3070eb8f';
 var echonest_shared_secret = 'Le4kIQhOQ8SdyZ2Mk6Z7CA';
-
-var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 
 
 /**
@@ -27,7 +29,8 @@ var generateRandomString = function(length) {
     return text;
 };
 
-var stateKey = 'spotify_auth_state';
+var spotifyKey = 'spotify_auth';
+var lastfmKey = 'lastfm_auth';
 
 var app = express();
 
@@ -38,10 +41,24 @@ app.get('/mockup', function(req, res){
     res.sendfile('public/mockup.html');
 });
 
-app.get('/login', function(req, res) {
+app.get('login/lastfm', function(req, res) {
+    res.redirect('http://www.last.fm/api/auth/?' +
+    querystring.stringify({
+        api_key: lastfm_api_key,
+		cb: lastfm_callback_url,
+    }));
+
+    console.log(querystring.stringify({
+        api_key: lastfm_api_key,
+		cb: lastfm_callback_url,
+    }));
+});
+
+
+app.get('/login/spotify', function(req, res) {
 
     var state = generateRandomString(16);
-    res.cookie(stateKey, state);
+    res.cookie(spotifyKey, state);
 
     // your application requests authorization
     var scope = 'user-read-private user-read-email user-library-read playlist-read-private playlist-modify playlist-modify-public playlist-modify-private';
@@ -50,7 +67,7 @@ app.get('/login', function(req, res) {
         response_type: 'code',
         client_id: spotify_client_id,
         scope: scope,
-        redirect_uri: redirect_uri,
+        redirect_uri: spotify_callback_url,
         state: state
     }));
 
@@ -58,19 +75,65 @@ app.get('/login', function(req, res) {
         response_type: 'code',
         client_id: spotify_client_id,
         scope: scope,
-        redirect_uri: redirect_uri,
+        redirect_uri: spotify_callback_url,
         state: state
     }));
 });
 
-app.get('/callback', function(req, res) {
+app.get('callback/lastfm', function(req, res) {
+	var token = req.query.token || null;
+    var storedToken = req.cookies ? req.cookies[lastfmKey] : null;
+	
+	if (token === null || token !== storedTolken) {
+        res.redirect('/#' +
+        querystring.stringify({
+            error: 'state_mismatch'
+        }));
+    } else {
+		res.clearCookie(lastfmToken);
+		var authOptions = {
+            url: 'http://ws.audioscrobbler.com/2.0/?' +
+			querystring.stringify({
+				method: 'auth.gettoken',
+				api_sig: 'auth.gettoken',
+				api_key: lastfm_api_key,
+				token: token,
+				format: 'json'
+			}))
+        };
+		
+		request.get(authOptions, function(error, response, body){
+				console.log(response.statusCode);
+				console.log(body);
+				
+				if (!error && response.statusCode === 200) {
+
+				var sessionKey = body.session.key,
+					  username = bodysession.name;
+
+                res.redirect('/#' +
+                querystring.stringify({
+                    sessionKey: sessionKey,
+                    username: username
+                }));
+            } else {
+                res.redirect('/#' +
+                querystring.stringify({
+                    error: 'invalid_token'
+                }));
+            }
+		});
+    }
+}
+
+app.get('/callback/spotify', function(req, res) {
 
     // your application requests refresh and access tokens
     // after checking the state parameter
 
     var code = req.query.code || null;
     var state = req.query.state || null;
-    var storedState = req.cookies ? req.cookies[stateKey] : null;
+    var storedState = req.cookies ? req.cookies[spotifyKey] : null;
 
     if (state === null || state !== storedState) {
         res.redirect('/#' +
@@ -78,12 +141,12 @@ app.get('/callback', function(req, res) {
             error: 'state_mismatch'
         }));
     } else {
-        res.clearCookie(stateKey);
+        res.clearCookie(spotifyKey);
         var authOptions = {
             url: 'https://accounts.spotify.com/api/token',
             form: {
                 code: code,
-                redirect_uri: redirect_uri,
+                redirect_uri: spotify_callback_url,
                 grant_type: 'authorization_code'
             },
             headers: {
