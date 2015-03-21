@@ -85,11 +85,11 @@ h2 {
     margin-right:auto;
 }
 
-#spotify-login, #spotify-loggedin {
+#spotify-login, #spotify-loggedin, #lastfm-loggedin {
     display: none;
 }
 
-#spotify-loggedin{
+#spotify-loggedin, #lastfm-loggedin{
     padding: 0;
 }
 

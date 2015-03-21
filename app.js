@@ -5,10 +5,10 @@ var cookieParser = require('cookie-parser');
 
 var spotify_client_id = 'dd2fe3ab80ba4853a0b3c6dd6c919e3d'; // Your client id
 var spotify_client_secret = '4902c49e25fa49d092989d579b0cd1c8'; // Your client secret
-var spotify_callback_url = 'http://localhost:8888/spotify/callback';
+var spotify_callback_url = 'http://localhost:8888/callback';
 var lastfm_api_key = 'dfcfa1d46b9c653c708b7840f98f7b1f'
 var lastfm_secret =  '5cc262f75a83de702aff7e3ec28d3f27'
-var lastfm_callback_url = 'http://localhost:8888/lastfm/callback';
+var lastfm_callback_url = 'http://localhost:8888/callback/lastfm';
 var echonest_api_key = 'ING7YKMEMYCTJJHGT';
 var echonest_consumer_key = 'e45e7b50ea464e12e8b6dbde3070eb8f';
 var echonest_shared_secret = 'Le4kIQhOQ8SdyZ2Mk6Z7CA';
@@ -41,7 +41,7 @@ app.get('/mockup', function(req, res){
     res.sendfile('public/mockup.html');
 });
 
-app.get('login/lastfm', function(req, res) {
+app.get('/login/lastfm', function(req, res) {
     res.redirect('http://www.last.fm/api/auth/?' +
     querystring.stringify({
         api_key: lastfm_api_key,
@@ -80,7 +80,7 @@ app.get('/login/spotify', function(req, res) {
     }));
 });
 
-app.get('callback/lastfm', function(req, res) {
+app.get('/callback/lastfm', function(req, res) {
 	var token = req.query.token || null;
     var storedToken = req.cookies ? req.cookies[lastfmKey] : null;
 	
@@ -99,7 +99,7 @@ app.get('callback/lastfm', function(req, res) {
 				api_key: lastfm_api_key,
 				token: token,
 				format: 'json'
-			}))
+			})
         };
 		
 		request.get(authOptions, function(error, response, body){
@@ -124,9 +124,11 @@ app.get('callback/lastfm', function(req, res) {
             }
 		});
     }
-}
+});
 
-app.get('/callback/spotify', function(req, res) {
+//Spotify requires the callback URL path to be named 'callback.' Will keep it like this for now until some other API
+//requires the same thing and then we can just conditionally redirect based on the sender.
+app.get('/callback', function(req, res) {
 
     // your application requests refresh and access tokens
     // after checking the state parameter
