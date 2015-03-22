@@ -41,6 +41,7 @@ app.get('/mockup', function(req, res){
     res.sendfile('public/mockup.html');
 });
 
+/*
 app.get('/login/lastfm', function(req, res) {
     res.redirect('http://www.last.fm/api/auth/?' +
     querystring.stringify({
@@ -53,7 +54,7 @@ app.get('/login/lastfm', function(req, res) {
 		cb: lastfm_callback_url,
     }));
 });
-
+*/
 
 app.get('/login/spotify', function(req, res) {
 
@@ -80,6 +81,7 @@ app.get('/login/spotify', function(req, res) {
     }));
 });
 
+/*
 app.get('/callback/lastfm', function(req, res) {
 	var token = req.query.token || null;
     var storedToken = req.cookies ? req.cookies[lastfmKey] : null;
@@ -125,6 +127,7 @@ app.get('/callback/lastfm', function(req, res) {
 		});
     }
 });
+*/
 
 //Spotify requires the callback URL path to be named 'callback.' Will keep it like this for now until some other API
 //requires the same thing and then we can just conditionally redirect based on the sender.
