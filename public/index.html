@@ -10,13 +10,14 @@
     <link type="text/css" href="css/font-awesome.min.css" rel="stylesheet" />
     <link type="text/css" href="css/styles.css" rel="stylesheet" />
     <link type="text/css" href="css/jquery.fullPage.css" rel="stylesheet"/>
+	<link type="text/css" href="css/bootstrap-tagsinput.css" rel="stylesheet"/>
 </head>
 <body>
 
 <div id="fullpage">
     <div class="section " id="connect">
-        <h1>Give us your entire music collection. So we can ignore it.</h1>
-        <p>We'll give you a playlist based on your tastes while banning artists you. Go on, adventure awaits.</p>
+        <h1>Give us your Spotify music collection. So we can ignore it.</h1>
+        <p>We'll give you a playlist based on your tastes while banning artists you already have.</p>
 
         <a href="/login/spotify" id="spotify-login" class="btn azm-social azm-size-64 azm-circle azm-long-shadow azm-spotify">
             <i class="fa fa-spotify"></i>
@@ -40,21 +41,40 @@
         </div>
 
     </div>
+	
+	
+	
     <div class ="section" id="seed">
-        asfsafsafasfasf
+        <h1>Choose at least 3 artists.</h1>
+        <p>The playlist will have music that is similar to these artists but won't have their music.</p>
+		<div id='seed' class='centered'>
+            <span>
+                <input title="Artist" type="text"  size=34 id="artist" name="artist" value=''/>
+            </span>
+			<br/>
+            <button class="btn btn-sm" value="go" id="go" name="go"> Go </button>
+         </div>
+		 <div class="controls">
+			<a class="next" style="display: none;" href="javascript:void(0);"><i class="fa fa-angle-down"></i></a>
+		</div>
     </div>
+	
+	<div class ="section" id="preview">
+        <h1>Preview</h1>
+        <p>Blah blah.</p>
+
+		 <div class="controls">
+			<a class="next" style="display: none;" href="javascript:void(0);"><i class="fa fa-angle-down"></i></a>
+		</div>
+    </div>
+	
 </div>
-<!--
+
     <script id="user-profile-template" type="text/x-handlebars-template">
 
         <div class='container font-light'>
             <div id='content' class="col-md-offset-2 col-md-8">
-                <div id='seed' class='centered'>
-            <span> Seed artist:
-                <input title="Artist" type="text"  size=34 id="artist" name="artist" value='Daft Punk,Kavinsky,Justice'/>
-            </span>
-                    <button class="btn btn-sm" value="go" id="go" name="go"> Go </button>
-                </div>
+                
                 <div id="info"> </div>
                 <div id="all_results"> </div>
                 <a href="javascript:void(0)" class="btn btn-primary export spotify" style="display: none;">Export to Spotify</a>
@@ -68,12 +88,13 @@
 
     <script id="oauth-template" type="text/x-handlebars-template"></script>
 
--->
+
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
     <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
 	<script src="js/jquery.fullPage.js"></script>
+	<script src="js/bootstrap-tagsinput.js"></script>
     <script src="js/q.js"></script>
     <script src="js/spotify-web-api.js"></script>
     <script src="js/config.js"></script>
@@ -92,6 +113,23 @@
 			
 			$("#fullpage #connect.section .next").click(function(){
 				$.fn.fullpage.moveSectionDown();
+			});
+			
+			$('#artist').tagsinput({
+				maxTags: 10
+			})
+						
+			$('#artist').tagsinput('add', 'Daft Punk');
+			$('#artist').tagsinput('add', 'Kavinsky');
+			$('#artist').tagsinput('add', 'Justice');
+			
+			$('#artist').on('itemAdded itemRemoved', function(event) {
+					var numTags = $("#artist").tagsinput('items').length;
+					if(numTags >= 3){
+						$('#seed .controls > .next').show();
+					} else {
+						$('#seed .controls > .next').hide();
+					}
 			});
 			
             var currPlayer = null,

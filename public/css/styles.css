@@ -146,6 +146,28 @@ h2 {
 
 }
 
+.bootstrap-tagsinput {
+	box-shadow: none !important;
+	width: 80% !important;
+  min-height: auto !important;
+  height: 55px !important;
+  background: none !important;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 15px;
+  border: none !important;
+  margin-top: 15px;
+}
+
+.bootstrap-tagsinput .label {
+  font-size: 1.5em;
+}
+
+
+.bootstrap-tagsinput .label-info{
+	background-color: #4D4D4D;
+}
+
 .text-overflow {
     overflow: hidden;
     text-overflow: ellipsis;
