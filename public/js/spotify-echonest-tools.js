@@ -224,6 +224,7 @@ function getSpotifyPlayer(sessionId, seededArtists, callback) {
     }
 
     function createPlayer() {
+		var wrapper = $("<div class='sp-player-wrapper'>");
         var main = $("<div class='sp-player'>");
         var img = $("<img class='sp-album-art'>");
         var info  = $("<div class='sp-info'>");
@@ -231,10 +232,10 @@ function getSpotifyPlayer(sessionId, seededArtists, callback) {
         var artist = $("<div class='sp-artist'>");
         var controls = $("<div class='btn-group sp-controls'>");
 
-        var next = $('<button class="btn btn-primary btn-sm" type="button"><span class="glyphicon glyphicon-forward"></span></button>');
-        var prev = $('<button class="btn btn-primary btn-sm" type="button"><span class="glyphicon glyphicon-backward"></span></button>');
-        var pausePlay = $('<button class="btn btn-primary btn-sm" type="button"><span class="glyphicon glyphicon-play"></span></button>');
-        var ban = $('<button class="btn btn-primary btn-sm" type="button"><span class="glyphicon glyphicon-remove"></span></button>');
+        var next = $('<button class="btn btn-primary btn-lg btn-control" type="button"><span class="glyphicon glyphicon-forward"></span></button>');
+        var prev = $('<button class="btn btn-primary btn-lg btn-control" type="button"><span class="glyphicon glyphicon-backward"></span></button>');
+        var pausePlay = $('<button class="btn btn-primary btn-lg btn-control" type="button"><span class="glyphicon glyphicon-play"></span></button>');
+        var ban = $('<button class="btn btn-primary btn-lg btn-control" type="button"><span class="glyphicon glyphicon-remove"></span></button>');
 
         audio = $("<audio>");
         audio.on('pause', function() {
@@ -282,10 +283,14 @@ function getSpotifyPlayer(sessionId, seededArtists, callback) {
         controls.append(pausePlay);
         controls.append(ban);
         controls.append(next);
+		wrapper.append(controls);
 
         main.append(img);
         main.append(info);
-        main.append(controls);
+		
+		
+		
+		
 
         main.bind('destroyed', function() {
             console.log('player destroyed');
@@ -293,8 +298,10 @@ function getSpotifyPlayer(sessionId, seededArtists, callback) {
         });
 
         main.getDynamicPlaylistUpTo = getDynamicPlaylistUpTo;
+		
+		wrapper.append(main);
 
-        return main;
+        return wrapper;
     }
 
     fetchNextTracks();

@@ -132,6 +132,11 @@ h2 {
 	margin-top: 60px;
 }
 
+.sp-controls .btn-control{
+	background: none;
+	color: rgb(44, 62, 80);
+}
+
 .section .controls > .next{
 	color: #555;
 	font-size: 5em;

@@ -51,8 +51,6 @@
             <span>
                 <input title="Artist" type="text"  size=34 id="artist" name="artist" value=''/>
             </span>
-			<br/>
-            <button class="btn btn-sm" value="go" id="go" name="go"> Go </button>
          </div>
 		 <div class="controls">
 			<a class="next" style="display: none;" href="javascript:void(0);"><i class="fa fa-angle-down"></i></a>
@@ -60,11 +58,13 @@
     </div>
 	
 	<div class ="section" id="preview">
-        <h1>Preview</h1>
-        <p>Blah blah.</p>
-
+        <h1>Preview playlist songs samples.</h1>
+        <p>Hit X on anything you hate or just find familiar.</p>
+		
+		<div id="preview-area"></div>
+		
 		 <div class="controls">
-			<a class="next" style="display: none;" href="javascript:void(0);"><i class="fa fa-angle-down"></i></a>
+			<a class="next" href="javascript:void(0);"><i class="fa fa-angle-down"></i></a>
 		</div>
     </div>
 	
@@ -76,7 +76,7 @@
             <div id='content' class="col-md-offset-2 col-md-8">
                 
                 <div id="info"> </div>
-                <div id="all_results"> </div>
+                
                 <a href="javascript:void(0)" class="btn btn-primary export spotify" style="display: none;">Export to Spotify</a>
                 <div id='footer'>
                     Powered by <a href="http://the.echonest.com">The Echo Nest</a> and <a href="http://spotify.com">Spotify</a>.
@@ -118,13 +118,15 @@
 				$.fn.fullpage.moveSectionDown();
 			});
 			
+			$("#fullpage #seed.section .next").click(function(){
+				newArtist();
+				$.fn.fullpage.moveSectionDown();
+			});
+			
 			$('#artist').tagsinput({
 				maxTags: 10
 			})
-						
-			$('#artist').tagsinput('add', 'Daft Punk');
-			$('#artist').tagsinput('add', 'Kavinsky');
-			$('#artist').tagsinput('add', 'Justice');
+
 			
 			$('#artist').on('itemAdded itemRemoved', function(event) {
 					var numTags = $("#artist").tagsinput('items').length;
@@ -342,7 +344,7 @@
 
                             var setupPlayer = function(){
                                 var url = config.echoNestHost + 'api/v4/playlist/dynamic/create';
-                                $("#all_results").empty();
+                                $("#preview-area").empty();
                                 info("Creating the playlist ...");
                                 $.getJSON(url, {
                                     'seed_catalog': tasteProfile.current.id,
@@ -362,7 +364,7 @@
                                     getSpotifyPlayer(sessionId, seededArtists, function(player) {
                                         console.log('got the player');
                                         currPlayer = player;
-                                        $("#all_results").append(player);
+                                        $("#preview-area").append(player);
                                         console.log(player);
                                         $(".export.spotify").show();
                                     });
@@ -440,10 +442,6 @@
                                 if (evt.keyCode == 13) {
                                     newArtist();
                                 }
-                            });
-
-                            $("#go").on("click", function() {
-                                newArtist();
                             });
 
                             $(".export.spotify").on("click", function(){
