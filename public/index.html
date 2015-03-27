@@ -36,6 +36,10 @@
             <i class="fa fa-lastfm"></i>
         </a>
 		-->
+		
+		<div id='footer'>
+			Powered by <a href="http://the.echonest.com">The Echo Nest</a> and <a href="http://spotify.com">Spotify</a>.
+		</div>
         <div class="controls">
             <a class="next" style="display: none;" href="javascript:void(0);"><i class="fa fa-angle-down"></i></a>
         </div>
@@ -58,8 +62,8 @@
     </div>
 	
 	<div class ="section" id="preview">
-        <h1>Preview playlist songs samples.</h1>
-        <p>Hit X on anything you hate or just find familiar.</p>
+        <h1>Preview playlist song samples.</h1>
+        <p>Hit X on anything you hate or just find too familiar.</p>
 		
 		<div id="preview-area"></div>
 		
@@ -68,27 +72,21 @@
 		</div>
     </div>
 	
+	<div class ="section" id="export">
+        <h1>Export this playlist.</h1>
+        <p>You can start listening to the full playlist right away. Enjoy.</p>
+		
+		<button class="btn btn-primary btn-lg btn-control btn-export" type="button" data-count="10">10</button>
+		<button class="btn btn-primary btn-lg btn-control btn-export" type="button" data-count="20">20</button>
+		<button class="btn btn-primary btn-lg btn-control btn-export" type="button" data-count="40">40</button>
+		<button class="btn btn-primary btn-lg btn-control btn-export" type="button" data-count="50">50</button>
+		
+		 <div class="controls">
+			<a class="next" href="javascript:void(0);"><i class="fa fa-angle-down"></i></a>
+		</div>
+    </div>
+	
 </div>
-
-    <script id="user-profile-template" type="text/x-handlebars-template">
-
-        <div class='container font-light'>
-            <div id='content' class="col-md-offset-2 col-md-8">
-                
-                <div id="info"> </div>
-                
-                <a href="javascript:void(0)" class="btn btn-primary export spotify" style="display: none;">Export to Spotify</a>
-                <div id='footer'>
-                    Powered by <a href="http://the.echonest.com">The Echo Nest</a> and <a href="http://spotify.com">Spotify</a>.
-                </div>
-            </div>
-        </div>
-    </script>
-
-
-    <script id="oauth-template" type="text/x-handlebars-template"></script>
-
-
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
@@ -123,6 +121,10 @@
 				$.fn.fullpage.moveSectionDown();
 			});
 			
+			$("#fullpage #preview.section .next").click(function(){
+				$.fn.fullpage.moveSectionDown();
+			});
+			
 			$('#artist').tagsinput({
 				maxTags: 10
 			})
@@ -153,7 +155,7 @@
 
             spotify.setPromiseImplementation(Q);
 
-            spotify.createPlaylistFromRadio = function(userId){
+            spotify.createPlaylistFromRadio = function(userId, trackCount){
                 spotify.createPlaylist(userId, {
                     name: Math.floor(Date.now())
                 }).then(function(playlist){
@@ -444,8 +446,13 @@
                                 }
                             });
 
-                            $(".export.spotify").on("click", function(){
-                                spotify.createPlaylistFromRadio(response.id);
+                            $(".btn-export").on("click", function(){
+								var trackCount = $(this).data("count");
+								if(trackCount > 0 && trackCount <= 50 ){
+									$(".btn-export").addClass("disabled");
+									spotify.createPlaylistFromRadio(response.id, trackCount);
+								
+								}
                             });
 
                             $('#spotify-loggedin').css('display', 'inline-block');
@@ -475,4 +482,4 @@
 
 </body>
 </html>
-
+ÿ
