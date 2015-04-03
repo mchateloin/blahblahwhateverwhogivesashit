@@ -442,7 +442,6 @@
             }
 
             $(document).ready(function() {
-
                 var params = getHashParams();
                 user.accessToken = params.access_token;
                 user.refreshToken = params.refresh_token;
@@ -453,7 +452,7 @@
                 } else {
                     if (user.accessToken) {
                         //user.refreshToken
-
+                        $('#spotify-login').addClass('loading').attr('disabled',true);
                         spotify.setAccessToken(user.accessToken);
                         spotify.loadArtistsFromLibrary();
                         spotify.getMe().then(function(response){
@@ -475,9 +474,14 @@
 								}
                             });
 
-                            $('#spotify-loggedin').css('display', 'inline-block');
+
                             $('#spotify-loggedin img').attr("src", response.images[0].url);
-                            $('#spotify-login').hide();
+                            $('#spotify-loggedin img')  .load(function(){
+                                        $('#spotify-login').removeClass('spin').hide().attr('disabled',false);
+                                        $('#spotify-loggedin').css('display', 'inline-block');
+                                    });
+
+
 							
 
 							$('#connect .controls > .next').show();
