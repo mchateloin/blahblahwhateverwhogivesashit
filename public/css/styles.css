@@ -160,6 +160,10 @@ h2 {
 	opacity: 0.7;
 }
 
+#connect .btn-group-login{
+    height: 150px;
+    padding-top: 20px;
+}
 
 
 .section .controls > .next:hover, .disabled{
