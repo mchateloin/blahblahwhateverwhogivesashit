@@ -135,19 +135,19 @@
 			
 			$('#artist').tagsinput({
 				maxTags: 10,
-				itemValue: "text"
-			})
+                confirmKeys: [13, 44],
+			});
 			
 			$('#artist').tagsinput("add", {
-				style: "opacity: 0.3;",
+                id: 1,
 				text: "Daft Punk"
 			});
 			$('#artist').tagsinput("add", {
-				style: "opacity: 0.3;",
+                id: 2,
 				text: "Kavinsky"
 			});
 			$('#artist').tagsinput("add", {
-				style: "opacity: 0.3;",
+                id: 3,
 				text: "Justice"
 			});
 
