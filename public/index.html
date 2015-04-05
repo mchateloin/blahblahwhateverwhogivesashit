@@ -132,27 +132,37 @@
 			/*$("#fullpage #preview.section .next").click(function(){
              $.fn.fullpage.moveSectionDown();
              });*/
-			
-			$('#artist').tagsinput({
+			$seeds = $('#artist');
+			$seeds.tagsinput({
+                trimValue: true,
 				maxTags: 10,
                 confirmKeys: [13, 44],
+                typeahead: {
+                    source: ['mick', 'casdf','asdf']
+                },
+                itemValue: 'text',
+                freeInput: true
+                //itemText: 'text'
 			});
 			
-			$('#artist').tagsinput("add", {
-                id: 1,
-				text: "Daft Punk"
+			$seeds.tagsinput("add", {
+                value: 1,
+				text: "Daft Punk",
+                cssClass: "placeholder"
 			});
-			$('#artist').tagsinput("add", {
-                id: 2,
-				text: "Kavinsky"
+			$seeds.tagsinput("add", {
+                value: 2,
+				text: "Kavinsky",
+                cssClass: "placeholder"
 			});
-			$('#artist').tagsinput("add", {
-                id: 3,
-				text: "Justice"
+			$seeds.tagsinput("add", {
+                value: 3,
+				text: "Justice",
+                cssClass: "placeholder"
 			});
 
-			$('#artist').on('itemAdded itemRemoved', function(event) {
-					var numTags = $("#artist").tagsinput('items').length;
+			$seeds.on('itemAdded itemRemoved', function(event) {
+					var numTags = $seeds.tagsinput('items').length;
 					if(numTags >= 3){
 						$('#seed .controls > .next').show();
 					} else {
@@ -422,7 +432,7 @@
             }
 
             function newArtist() {
-                var artist = $("#artist").val();
+                var artist = $seeds.val();
                 fetchArtistPlaylist(artist, false, .2);
             }
 
