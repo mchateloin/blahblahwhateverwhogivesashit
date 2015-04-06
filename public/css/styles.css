@@ -188,12 +188,19 @@ h2 {
 }
 
 .bootstrap-tagsinput .label {
-  font-size: 1.5em;
+    font-size: 1.5em;
+    line-height: 2.1;
 }
 
 
 .bootstrap-tagsinput .label-info{
 	background-color: #4D4D4D;
+}
+
+.bootstrap-tagsinput input:first-child{
+    border-bottom: solid 1px rgb(131, 123, 123);
+    padding-left: 50px;
+    padding-right: 50px;
 }
 
 .text-overflow {
