@@ -2,17 +2,7 @@ var express = require('express'); // Express web server framework
 var request = require('request'); // "Request" library
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
-
-var spotify_client_id = 'dd2fe3ab80ba4853a0b3c6dd6c919e3d'; // Your client id
-var spotify_client_secret = '4902c49e25fa49d092989d579b0cd1c8'; // Your client secret
-var spotify_callback_url = 'http://localhost:8888/callback';
-var lastfm_api_key = 'dfcfa1d46b9c653c708b7840f98f7b1f'
-var lastfm_secret =  '5cc262f75a83de702aff7e3ec28d3f27'
-var lastfm_callback_url = 'http://localhost:8888/callback/lastfm';
-var echonest_api_key = 'ING7YKMEMYCTJJHGT';
-var echonest_consumer_key = 'e45e7b50ea464e12e8b6dbde3070eb8f';
-var echonest_shared_secret = 'Le4kIQhOQ8SdyZ2Mk6Z7CA';
-
+var config = require('config');
 
 /**
  * Generates a random string containing numbers and letters
@@ -29,8 +19,7 @@ var generateRandomString = function(length) {
     return text;
 };
 
-var spotifyKey = 'spotify_auth';
-var lastfmKey = 'lastfm_auth';
+var spotifyKey = config.get('spotify.cookieName');
 
 var app = express();
 
@@ -41,93 +30,30 @@ app.get('/mockup', function(req, res){
     res.sendfile('public/mockup.html');
 });
 
-/*
-app.get('/login/lastfm', function(req, res) {
-    res.redirect('http://www.last.fm/api/auth/?' +
-    querystring.stringify({
-        api_key: lastfm_api_key,
-		cb: lastfm_callback_url,
-    }));
-
-    console.log(querystring.stringify({
-        api_key: lastfm_api_key,
-		cb: lastfm_callback_url,
-    }));
-});
-*/
-
 app.get('/login/spotify', function(req, res) {
 
     var state = generateRandomString(16);
     res.cookie(spotifyKey, state);
 
     // your application requests authorization
-    var scope = 'user-read-private user-read-email user-library-read playlist-read-private playlist-modify playlist-modify-public playlist-modify-private';
+    var scope = config.get('spotify.scope').join(' ');
     res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
         response_type: 'code',
-        client_id: spotify_client_id,
+        client_id: config.get('spotify.clientId'),
         scope: scope,
-        redirect_uri: spotify_callback_url,
+        redirect_uri: config.get('spotify.callbackUrl'),
         state: state
     }));
 
     console.log(querystring.stringify({
         response_type: 'code',
-        client_id: spotify_client_id,
+        client_id: config.get('spotify.clientId'),
         scope: scope,
-        redirect_uri: spotify_callback_url,
+        redirect_uri: config.get('spotify.callbackUrl'),
         state: state
     }));
 });
-
-/*
-app.get('/callback/lastfm', function(req, res) {
-	var token = req.query.token || null;
-    var storedToken = req.cookies ? req.cookies[lastfmKey] : null;
-	
-	if (token === null || token !== storedTolken) {
-        res.redirect('/#' +
-        querystring.stringify({
-            error: 'state_mismatch'
-        }));
-    } else {
-		res.clearCookie(lastfmToken);
-		var authOptions = {
-            url: 'http://ws.audioscrobbler.com/2.0/?' +
-			querystring.stringify({
-				method: 'auth.gettoken',
-				api_sig: 'auth.gettoken',
-				api_key: lastfm_api_key,
-				token: token,
-				format: 'json'
-			})
-        };
-		
-		request.get(authOptions, function(error, response, body){
-				console.log(response.statusCode);
-				console.log(body);
-				
-				if (!error && response.statusCode === 200) {
-
-				var sessionKey = body.session.key,
-					  username = bodysession.name;
-
-                res.redirect('/#' +
-                querystring.stringify({
-                    sessionKey: sessionKey,
-                    username: username
-                }));
-            } else {
-                res.redirect('/#' +
-                querystring.stringify({
-                    error: 'invalid_token'
-                }));
-            }
-		});
-    }
-});
-*/
 
 //Spotify requires the callback URL path to be named 'callback.' Will keep it like this for now until some other API
 //requires the same thing and then we can just conditionally redirect based on the sender.
@@ -151,11 +77,13 @@ app.get('/callback', function(req, res) {
             url: 'https://accounts.spotify.com/api/token',
             form: {
                 code: code,
-                redirect_uri: spotify_callback_url,
+                redirect_uri: config.get('spotify.callbackUrl'),
                 grant_type: 'authorization_code'
             },
             headers: {
-                'Authorization': 'Basic ' + (new Buffer(spotify_client_id + ':' + spotify_client_secret).toString('base64'))
+                'Authorization': 'Basic '
+                + (new Buffer(config.get('spotify.clientId') + ':'
+                + config.get('spotify.clientSecret')).toString('base64'))
             },
             json: true
         };
@@ -199,7 +127,9 @@ app.get('/refresh_token', function(req, res) {
     var refresh_token = req.query.refresh_token;
     var authOptions = {
         url: 'https://accounts.spotify.com/api/token',
-        headers: { 'Authorization': 'Basic ' + (new Buffer(spotify_client_id + ':' + spotify_client_secret).toString('base64')) },
+        headers: { 'Authorization': 'Basic '
+            + (new Buffer(config.get('spotify.clientId') + ':'
+            + config.get('spotify.clientSecret')).toString('base64')) },
         form: {
             grant_type: 'refresh_token',
             refresh_token: refresh_token
@@ -217,5 +147,5 @@ app.get('/refresh_token', function(req, res) {
     });
 });
 
-console.log('Listening on 8888');
-app.listen(8888);
+console.log('Listening on ' + config.get('port').toString());
+app.listen(config.get('port'));
