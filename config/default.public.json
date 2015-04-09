@@ -1,0 +1,15 @@
+{
+  "port": 8888,
+  "spotify":{
+    "scope": [
+      "user-read-private",
+      "user-read-email",
+      "user-library-read",
+      "playlist-read-private",
+      "playlist-modify",
+      "playlist-modify-public",
+      "playlist-modify-private"
+    ],
+    "cookieName": "spotify_auth"
+  }
+}
