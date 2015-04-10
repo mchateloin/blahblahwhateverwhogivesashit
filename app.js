@@ -18,7 +18,8 @@ var generateRandomString = function(length) {
     }
     return text;
 };
-
+console.log('spotify config', config.util.getConfigSources());
+return;
 var spotifyKey = config.get('spotify.cookieName');
 
 var app = express();
