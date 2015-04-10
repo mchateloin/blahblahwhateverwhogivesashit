@@ -484,16 +484,21 @@
 								if(trackCount > 0 && trackCount <= 50 ){
 									$(".btn-export").addClass("disabled");
 									spotify.createPlaylistFromRadio(response.id, trackCount);
-
 								}
                             });
 
+                            console.log("response from .getMe", response);
 
-                            $('#spotify-loggedin img').attr("src", response.images[0].url);
-                            $('#spotify-loggedin img')  .load(function(){
-                                        $('#spotify-login').removeClass('spin').hide().attr('disabled',false);
-                                        $('#spotify-loggedin').css('display', 'inline-block');
-                                    });
+                            if(response.images.length !== 0){
+                                $('#spotify-loggedin img').attr("src", response.images[0].url);
+                            } else {
+                                $('#spotify-loggedin img').attr("src", "images/default-avatar.png");
+                            }
+
+                            $('#spotify-loggedin img').load(function(){
+                                $('#spotify-login').removeClass('spin').hide().attr('disabled',false);
+                                $('#spotify-loggedin').css('display', 'inline-block');
+                            });
 
 
 							
