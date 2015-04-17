@@ -365,61 +365,73 @@
                 return fields[fields.length - 1];
             };
 
+
             var generatePlaylist = function(count){
-                var staticPlaylistCreateUrl = config.echoNestHost + 'api/v4/playlist/static',
-                    echonestPlaylist = null,
-                    spotifyPlaylist = null,
-                    tracksAddedResponse = null;
+                var createSpotifyPlaylist = function() {
+                        return spotify.createPlaylist(user.spotifyId, {
+                            name: "Fuck What You Heard: The " + $("#artist").tagsinput('items').join(", ") + " Edition",
+                            public: true
+                        }).then(function(playlist){
+                            console.log('spotify playlist created', playlist);
+                            return playlist;
+                        });
+                    };
+                    createStaticEchonestPlaylist = function(count){
+                        var staticPlaylistCreateUrl = config.echoNestHost + 'api/v4/playlist/static';
+                        return $.get(staticPlaylistCreateUrl, {
+                            'api_key': config.apiKey,
+                            'type':'catalog-radio',
+                            'variety': 1,
+                            'distribution': 'wandering',
+                            'adventurousness': 1,
+                            'seed_catalog': tasteProfile.current.id,
+                            'results': count,
+                            'bucket': [ 'id:' + config.spotifySpace, 'tracks'],
+                            '_': Math.floor(Date.now()  )
+                        }).then(function(playlist){
+                            return playlist;
+                        })
+                    };
 
 
-                $.get(staticPlaylistCreateUrl, {
-                    'api_key': config.apiKey,
-                    'type':'catalog-radio',
-                    'variety': 1,
-                    'distribution': 'wandering',
-                    'adventurousness': 1,
-                    'seed_catalog': tasteProfile.current.id,
-                    'results': 100,
-                    'bucket': [ 'id:' + config.spotifySpace, 'tracks'],
-                    '_': Math.floor(Date.now())
-                }).then(function(generatedPlaylist){
-                    console.log('generated echonest playlist', generatedPlaylist);
-                    echonestPlaylist = generatedPlaylist;
-                    return spotify.createPlaylist(user.spotifyId, {
-                        name: "Fuck What You Heard: The " + $("#artist").tagsinput('items').join(", ") + " Edition",
-                        public: true
-                    }, function(response){
-                        spotifyPlaylist = response;
-                        console.log("heres the spotify playlist response", response);
-                    });
-                }).then(function(){
-                    console.log('spotify playlist created', spotifyPlaylist);
-                    var spotifyTrackUris = echonestPlaylist.response.songs.filter(function(song){
-                        return song.tracks || song.tracks.length > 0;
-                    }).map(function(song){
-                        return song.tracks;
-                    }).map(function(trackList){
-                        var firstValidTrackUri = null;
-                        for( var iTrack = 0; iTrack < trackList.length; iTrack++){
-                            if(trackList[iTrack].foreign_id){
-                                firstValidTrackUri = trackList[iTrack].foreign_id;
-                                break;
-                            }
-                        }
-                        return firstValidTrackUri;
-                    }).filter(function(uri){
-                        return uri;
-                    });
-                    console.log('uris', spotifyTrackUris);
+                var createSrcDestPlaylists = function(){
+                        return Q.all([
+                            createSpotifyPlaylist(),         // Request #2
+                            createStaticEchonestPlaylist(count)         // Request #3
+                        ]).spread(function(spPlaylist, enPlaylist){
 
-                    return spotify.addTracksToPlaylist(user.spotifyId, spotifyPlaylist.id, null, {
-                        uris: spotifyTrackUris
-                    }, function(response){
-                        tracksAddedResponse = response;
+                            console.log('mmmm spread', spPlaylist, enPlaylist);
+                            return {
+                                id: spPlaylist.id,
+                                tracks: enPlaylist.response.songs.filter(function(song){
+                                    return song.tracks || song.tracks.length > 0;
+                                }).map(function(song){
+                                    return song.tracks;
+                                }).map(function(trackList){
+                                    var firstValidTrackUri = null;
+                                    for( var iTrack = 0; iTrack < trackList.length; iTrack++){
+                                        if(trackList[iTrack].foreign_id){
+                                            firstValidTrackUri = trackList[iTrack].foreign_id;
+                                            break;
+                                        }
+                                    }
+                                    return firstValidTrackUri;
+                                }).filter(function(uri){
+                                    return uri;
+                                })
+                            };
+                        });
+                    },
+                    addTracksToSpotifyPlaylist = function(exportedPlaylist){
+                        return spotify.addTracksToPlaylist(user.spotifyId, exportedPlaylist.id, exportedPlaylist.tracks);
+                    };
+
+                createSrcDestPlaylists()
+                    .then(addTracksToSpotifyPlaylist)
+                    .then(function(response){
+                        alert("done!");
                     });
-                }).then(function(response){
-                    alert("done!");
-                });
+
             };
 
             var getHashParams = function() {
