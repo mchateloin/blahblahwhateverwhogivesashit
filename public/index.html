@@ -360,12 +360,6 @@
 
             };
 
-            var fidToSpid = function(fid) {
-                var fields = fid.split(':');
-                return fields[fields.length - 1];
-            };
-
-
             var generatePlaylist = function(count){
                 var createSpotifyPlaylist = function() {
                         return spotify.createPlaylist(user.spotifyId, {
