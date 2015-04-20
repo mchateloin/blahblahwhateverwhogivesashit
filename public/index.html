@@ -121,7 +121,9 @@
                 }
             });
 
+            var artistsSeeded = {};
             $seeds = $('#artist');
+
 
 
 
@@ -172,8 +174,10 @@
                     },
                     minLength: 3,
                     select: function( event, ui ) {
-                        // Do something with ui.item, ui.item.id, and ui.item.label if needed here.
-                        // If ui.item is falsey, there was no selection.
+                        // We have remember these in order to remove them from the export playlist later.
+                        if(ui.item){
+                            artistsSeeded[ui.item.id] = ui.item.label;
+                        }
                     }
                 });
 			});
@@ -437,7 +441,8 @@
                     return {
                         id: spPlaylist.id,
                         tracks: enPlaylist.response.songs.filter(function(song){
-                            return song.tracks || song.tracks.length > 0;
+                            var isSeedArtist = typeof artistsSeeded[song.artist_id] !== "undefined";
+                            return !isSeedArtist && ( song.tracks || song.tracks.length > 0 );
                         }).map(function(song){
                             return song.tracks;
                         }).map(function(trackList){
