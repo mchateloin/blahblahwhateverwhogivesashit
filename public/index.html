@@ -423,7 +423,7 @@
                     'distribution': 'wandering',
                     'adventurousness': 1,
                     'seed_catalog': tasteProfile.current.id,
-                    'results': count,
+                    'results': count + 10, // Margin of error for bad tracks, and filtering out seed artists
                     'bucket': [ 'id:' + config.spotifySpace, 'tracks'],
                     '_': Math.floor(Date.now()  )
                 }).then(function(playlist){
@@ -456,7 +456,7 @@
                             return firstValidTrackUri;
                         }).filter(function(uri){
                             return uri;
-                        })
+                        }).slice(0, 1 + count) // We asked for more than we needed
                     };
                 });
             };
