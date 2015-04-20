@@ -85,6 +85,7 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
     <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
 	<script src="js/jquery.fullPage.js"></script>
+    <script src="js/jquery-ui.min.js"></script>
     <script src="js/bootstrap-tagsinput.js"></script>
     <script src="js/q.js"></script>
     <script src="js/spotify-web-api.js"></script>
@@ -121,11 +122,17 @@
             });
 
             $seeds = $('#artist');
+
+
+
+            // Controlled input through tags.
             $seeds.tagsinput({
                 trimValue: true,
                 maxTags: 10,
                 confirmKeys: [13, 44, 9]
             });
+
+            // Control progress to next step based on how many artists are chosen.
             $seeds.on('itemAdded itemRemoved', function(event) {
                 var numTags = $seeds.tagsinput('items').length;
                 if(numTags >= 3){
@@ -135,10 +142,43 @@
                 }
             });
 
+            // Progress from Connect to Seed
 			$("#fullpage #connect.section .next").click(function(){
 				$.fn.fullpage.moveSectionDown();
+
+                // Auto complete initialize in seed field.
+                $(".bootstrap-tagsinput input").autocomplete({
+                    source: function( request, response ) {
+                        $.ajax({
+                            url: config.echoNestHost + "api/v4/artist/suggest",
+                            dataType: "jsonp",
+                            data: {
+                                results: 12,
+                                'api_key': config.apiKey,
+                                '_': Math.floor(Date.now()),
+                                format:"jsonp",
+                                name:request.term
+                            },
+                            success: function( data ) {
+                                response( $.map( data.response.artists, function(item) {
+                                    return {
+                                        label: item.name,
+                                        value: item.name,
+                                        id: item.id
+                                    }
+                                }));
+                            }
+                        });
+                    },
+                    minLength: 3,
+                    select: function( event, ui ) {
+                        // Do something with ui.item, ui.item.id, and ui.item.label if needed here.
+                        // If ui.item is falsey, there was no selection.
+                    }
+                });
 			});
-			
+
+            // Progress from Seed to Export
 			$("#fullpage #seed.section .next").click(function(){
 				$.fn.fullpage.moveSectionDown();
                 createTasteProfile($("#artist").val());
@@ -493,6 +533,8 @@
                         generatePlaylist(trackCount);
                     }
                 });
+
+
 
 
             });
