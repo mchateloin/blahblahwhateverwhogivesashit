@@ -43,7 +43,7 @@ app.get('/login/spotify', function(req, res) {
         response_type: 'code',
         client_id: process.env.SPOTIFY_CLIENT_ID,
         scope: scope,
-        redirect_uri:  req.protocol + '://' + req.get('host') + "/callback",
+        redirect_uri:  req.get('host') + "/callback",
         state: state
     }));
 
@@ -51,7 +51,7 @@ app.get('/login/spotify', function(req, res) {
         response_type: 'code',
         client_id: process.env.SPOTIFY_CLIENT_ID,
         scope: scope,
-        redirect_uri: req.protocol + '://' + req.get('host') + "/callback",
+        redirect_uri: req.get('host') + "/callback",
         state: state
     }));
 });
