@@ -147,5 +147,6 @@ app.get('/refresh_token', function(req, res) {
     });
 });
 
-console.log('Listening on ' + config.get('port').toString());
-app.listen(config.get('port'));
+var port = process.env.PORT || config.get('port');
+console.log('Listening on ' + port);
+app.listen(port);
