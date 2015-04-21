@@ -3,7 +3,7 @@ var request = require('request'); // "Request" library
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 var config = require('config');
-
+console.log('env',process.env);
 /**
  * Generates a random string containing numbers and letters
  * @param  {number} length The length of the string
@@ -37,10 +37,11 @@ app.get('/login/spotify', function(req, res) {
 
     // your application requests authorization
     var scope = config.get('spotify.scope').join(' ');
+
     res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
         response_type: 'code',
-        client_id: config.get('spotify.clientId'),
+        client_id: process.env.SPOTIFY_CLIENT_ID,
         scope: scope,
         redirect_uri:  req.protocol + '://' + req.get('host') + "/callback",
         state: state
@@ -48,7 +49,7 @@ app.get('/login/spotify', function(req, res) {
 
     console.log(querystring.stringify({
         response_type: 'code',
-        client_id: config.get('spotify.clientId'),
+        client_id: process.env.SPOTIFY_CLIENT_ID,
         scope: scope,
         redirect_uri: req.protocol + '://' + req.get('host') + "/callback",
         state: state
@@ -82,8 +83,8 @@ app.get('/callback', function(req, res) {
             },
             headers: {
                 'Authorization': 'Basic '
-                + (new Buffer(config.get('spotify.clientId') + ':'
-                + config.get('spotify.clientSecret')).toString('base64'))
+                + (new Buffer(process.env.SPOTIFY_CLIENT_ID + ':'
+                + process.env.SPOTIFY_CLIENT_SECRET).toString('base64'))
             },
             json: true
         };
@@ -128,8 +129,8 @@ app.get('/refresh_token', function(req, res) {
     var authOptions = {
         url: 'https://accounts.spotify.com/api/token',
         headers: { 'Authorization': 'Basic '
-            + (new Buffer(config.get('spotify.clientId') + ':'
-            + config.get('spotify.clientSecret')).toString('base64')) },
+            + (new Buffer(process.env.SPOTIFY_CLIENT_ID + ':'
+            + process.env.SPOTIFY_CLIENT_SECRET).toString('base64')) },
         form: {
             grant_type: 'refresh_token',
             refresh_token: refresh_token
