@@ -42,7 +42,7 @@ app.get('/login/spotify', function(req, res) {
         response_type: 'code',
         client_id: config.get('spotify.clientId'),
         scope: scope,
-        redirect_uri: config.get('spotify.callbackUrl'),
+        redirect_uri:  req.protocol + '://' + req.get('host') + "/callback",
         state: state
     }));
 
@@ -50,7 +50,7 @@ app.get('/login/spotify', function(req, res) {
         response_type: 'code',
         client_id: config.get('spotify.clientId'),
         scope: scope,
-        redirect_uri: config.get('spotify.callbackUrl'),
+        redirect_uri: req.protocol + '://' + req.get('host') + "/callback",
         state: state
     }));
 });
@@ -77,7 +77,7 @@ app.get('/callback', function(req, res) {
             url: 'https://accounts.spotify.com/api/token',
             form: {
                 code: code,
-                redirect_uri: config.get('spotify.callbackUrl'),
+                redirect_uri:  req.protocol + '://' + req.get('host') + "/callback",
                 grant_type: 'authorization_code'
             },
             headers: {

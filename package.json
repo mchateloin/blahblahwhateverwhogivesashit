@@ -5,6 +5,9 @@
   "description": "A music streaming thing or whatever.",
   "version": "0.0.1",
   "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
   "dependencies": {
     "config": "*",
     "process": "*",
