@@ -1,6 +1,7 @@
 {
   "author": "Miguel Chateloin",
-  "name": "blahblahwhateverwhogivesashit",
+  "name": "fuck-what-you-heard-playlists",
+  "repository": "https://github.com/mchateloin/fuck-what-you-heard-playlists.git",
   "description": "A music streaming thing or whatever.",
   "version": "0.0.1",
   "main": "app.js",
