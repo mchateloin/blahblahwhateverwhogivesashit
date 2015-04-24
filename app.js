@@ -1,9 +1,10 @@
-var express = require('express'); // Express web server framework
-var request = require('request'); // "Request" library
-var querystring = require('querystring');
-var cookieParser = require('cookie-parser');
-var config = require('config');
-console.log('env',process.env);
+var express = require('express'), // Express web server framework
+    request = require('request'), // "Request" library
+    querystring = require('querystring'),
+    cookieParser = require('cookie-parser'),
+    config = require('config');
+
+
 /**
  * Generates a random string containing numbers and letters
  * @param  {number} length The length of the string
@@ -19,17 +20,18 @@ var generateRandomString = function(length) {
     return text;
 };
 
+// Some globals
 var spotifyKey = config.get('spotify.cookieName');
 
 var app = express();
 
-app.use(express.static(__dirname + '/public'))
+app
+    .use(express.static(__dirname + '/public'))
     .use(cookieParser());
 
-app.get('/mockup', function(req, res){
-    res.sendfile('public/mockup.html');
-});
-
+/**
+ * GET /login/spotify
+ */
 app.get('/login/spotify', function(req, res) {
 
     var state = generateRandomString(16);
@@ -56,8 +58,22 @@ app.get('/login/spotify', function(req, res) {
     }));
 });
 
-//Spotify requires the callback URL path to be named 'callback.' Will keep it like this for now until some other API
-//requires the same thing and then we can just conditionally redirect based on the sender.
+/**
+ * GET /logout/spotify
+ */
+app.get('/logout/spotify', function(req, res){
+
+    res.clearCookie(spotifyKey);
+
+
+});
+
+
+/**
+ * GET /callback
+ * Spotify requires the callback URL path to be named 'callback.' Will keep it like this for now until some other API
+ * requires the same thing and then we can just conditionally redirect based on the sender.
+ */
 app.get('/callback', function(req, res) {
 
     // your application requests refresh and access tokens
@@ -122,6 +138,10 @@ app.get('/callback', function(req, res) {
     }
 });
 
+
+/**
+ * GET /refresh_token
+ */
 app.get('/refresh_token', function(req, res) {
 
     // requesting access token from refresh token
@@ -147,6 +167,7 @@ app.get('/refresh_token', function(req, res) {
         }
     });
 });
+
 
 var port = process.env.PORT || config.get('port');
 console.log('Listening on ' + port);
