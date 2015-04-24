@@ -11,9 +11,21 @@
     <link type="text/css" href="css/styles.css" rel="stylesheet" />
     <link type="text/css" href="css/jquery.fullPage.css" rel="stylesheet"/>
 	<link type="text/css" href="css/bootstrap-tagsinput.css" rel="stylesheet"/>
+    <link type="text/css" href="css/circle-spinner.css" rel="stylesheet"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
+
+<div id="spinner-area" class="hide">
+    <div class="sk-spinner sk-spinner-wave">
+        <div class="sk-rect1"></div>
+        <div class="sk-rect2"></div>
+        <div class="sk-rect3"></div>
+        <div class="sk-rect4"></div>
+        <div class="sk-rect5"></div>
+    </div>
+</div>
+
 
 <div id="fullpage">
     <div class="section" id="connect">
@@ -131,9 +143,6 @@
             var artistsSeeded = {};
             $seeds = $('#artist');
 
-
-
-
             // Controlled input through tags.
             $seeds.tagsinput({
                 trimValue: true,
@@ -158,8 +167,6 @@
 				$.fn.fullpage.moveSectionDown();
 
                 // Auto complete initialize in seed field.
-
-
                 $seeds.tagsinput('input').autocomplete({
                     source: function( request, response ) {
                         $.ajax({
@@ -202,6 +209,7 @@
 			$("#fullpage #seed.section .next").click(function(){
                 $("#fullpage #export.section").removeClass('hide').show();
                 $.fn.fullpage.moveSectionDown();
+                $("#spinner-area").removeClass("hide").show();
                 createTasteProfile($("#artist").val());
 			});
 
@@ -338,6 +346,7 @@
                 }).done(function(data){
                     console.log(data);
                     if(data.response.ticket_status !== 'pending'){
+                        $("#spinner-area").hide();
                         return;
                     } else {
                         checkTasteProfileStatus(ticket);
@@ -493,8 +502,7 @@
                     .then(addTracksToSpotifyPlaylist)
                     .then(function(response){
                         console.log('done', response);
-
-                        alert("done!");
+                        $("#spinner-area").hide();
                     });
 
             };
@@ -566,6 +574,7 @@
                 // Export playlists
                 $(".btn-export").on("click", function(){
                     $(".btn-export").hide();
+                    $("#spinner-area").removeClass("hide").show();
                     var trackCount = $(this).data("count");
                     if(trackCount > 0 && trackCount <= 50 ){
                         //TODO static playlist creation logic goes here
