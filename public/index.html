@@ -166,6 +166,7 @@
             // Progress from Connect to Seed
 			$("#fullpage #connect.section .next").click(function(){
                 $("#fullpage #seed.section").removeClass('hide').show();
+                $.fn.fullpage.setAllowScrolling(false);
 				$.fn.fullpage.moveSectionDown();
 
                 // Auto complete initialize in seed field.
@@ -209,6 +210,7 @@
 
             // Progress from Seed to Export
 			$("#fullpage #seed.section .next").click(function(){
+                $.fn.fullpage.setAllowScrolling(true);
                 $("#fullpage #export.section").removeClass('hide').show();
                 $.fn.fullpage.moveSectionDown();
                 $("#spinner-area").removeClass("hide").show();
