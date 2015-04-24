@@ -313,3 +313,19 @@ ul.tracks > li img.art {
         transform: rotate(360deg);  /* Firefox 16+, IE 10+, Opera */
     }
 }
+
+@media only screen
+and (max-device-width : 768px)  {
+
+    .ui-autocomplete {
+        left: 5% !important;
+        width: 90% !important;
+        position: fixed !important;
+        top: 25px !important;
+        display: block;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+}
+
