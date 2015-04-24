@@ -49,7 +49,7 @@
 		</div>
 
         <div class="controls">
-            <a class="next" style="display: none;" href="javascript:void(0);"><i class="fa fa-angle-down"></i></a>
+            <a class="next drop-in blink" style="display: none;" href="javascript:void(0);"><i class="fa fa-angle-down"></i></a>
         </div>
 
     </div>
@@ -65,7 +65,7 @@
             </span>
          </div>
 		 <div class="controls">
-			<a class="next" style="display: none;" href="javascript:void(0);"><i class="fa fa-angle-down"></i></a>
+			<a class="next drop-in blink" style="display: none;" href="javascript:void(0);"><i class="fa fa-angle-down"></i></a>
 		</div>
     </div>
 	
@@ -79,7 +79,6 @@
 		<button class="btn btn-primary btn-lg btn-control btn-export" type="button" data-count="50">50</button>
 
 		 <div class="controls">
-			<a class="next" href="javascript:void(0);"><i class="fa fa-angle-down"></i></a>
 		</div>
     </div>
 	
@@ -105,6 +104,7 @@
 					//easingcss3: 'cubic-bezier(0.175, 0.885, 0.320, 1.275)'
 					keyboardScrolling: false,
                     responsive: 1,
+                    scrollOverflow: true,
                     afterSlideLoad: function( anchorLink, index, slideAnchor, slideIndex){
                         var loadedSlide = $(this);
 
@@ -540,6 +540,7 @@
                     $('#spotify-login').show().removeClass('loading').attr('disabled',false);
                     $('#spotify-loggedin').hide();
                     $('#spotify-logout').hide();
+                    $('#connect .controls > .next').hide();
                 });
 
                 // Export playlists
