@@ -16,7 +16,7 @@
 <body>
 
 <div id="fullpage">
-    <div class="section " id="connect">
+    <div class="section" id="connect">
         <h1>Give us your Spotify music collection. So we can ignore it.</h1>
         <p>We'll give you a playlist based on your tastes while banning artists you already have.</p>
 
@@ -56,7 +56,7 @@
 	
 	
 	
-    <div class ="section" id="seed">
+    <div class ="section hide" id="seed">
         <h1>Choose at least 3 artists.</h1>
         <p>The playlist will have music that is similar to these artists but won't have their music.</p>
 		<div class='centered'>
@@ -69,7 +69,7 @@
 		</div>
     </div>
 	
-	<div class ="section" id="export">
+	<div class ="section hide" id="export">
         <h1>Generate a playlist.</h1>
         <p>You can start listening to it right away in Spotify.</p>
 
@@ -150,6 +150,7 @@
 
             // Progress from Connect to Seed
 			$("#fullpage #connect.section .next").click(function(){
+                $("#fullpage #seed.section").removeClass('hide').show();
 				$.fn.fullpage.moveSectionDown();
 
                 // Auto complete initialize in seed field.
@@ -188,7 +189,8 @@
 
             // Progress from Seed to Export
 			$("#fullpage #seed.section .next").click(function(){
-				$.fn.fullpage.moveSectionDown();
+                $("#fullpage #export.section").removeClass('hide').show();
+                $.fn.fullpage.moveSectionDown();
                 createTasteProfile($("#artist").val());
 			});
 
