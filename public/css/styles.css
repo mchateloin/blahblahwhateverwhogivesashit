@@ -154,6 +154,12 @@ h2 {
     text-decoration: underline !important;
 }
 
+.section {
+    width: 91% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
 .section .controls{
 	margin-top: 60px;
 }
@@ -181,6 +187,13 @@ h2 {
 
 #connect.section .next{
 
+}
+
+.btn-export {
+    width: 46%;
+    margin-right: 2%;
+    margin-left: 2%;
+    margin-bottom: 4%;
 }
 
 .bootstrap-tagsinput {
@@ -288,7 +301,6 @@ ul.tracks > li img.art {
     background-image: none;
 }
 
-
 @-webkit-keyframes spin {
     0%   {
         -webkit-transform: rotate(0deg);  /* Chrome, Opera 15+, Safari 3.1+ */
@@ -326,6 +338,8 @@ and (max-device-width : 768px)  {
         padding-left: 5px;
         padding-right: 5px;
     }
+
+
 
 }
 

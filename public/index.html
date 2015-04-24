@@ -85,14 +85,16 @@
         <h1>Generate a playlist.</h1>
         <p>You can start listening to it right away in Spotify.</p>
 
-        <button class="btn btn-primary btn-lg btn-control btn-export" type="button" data-count="10">10</button>
-		<button class="btn btn-primary btn-lg btn-control btn-export" type="button" data-count="20">20</button>
-		<button class="btn btn-primary btn-lg btn-control btn-export" type="button" data-count="40">40</button>
-		<button class="btn btn-primary btn-lg btn-control btn-export" type="button" data-count="50">50</button>
+        <div id="export-btns" class="row">
+            <button class="col-xs-6 btn btn-primary btn-lg btn-control btn-export" type="button" data-count="10">10 songs</button>
+            <button class="col-xs-6 btn btn-primary btn-lg btn-control btn-export" type="button" data-count="20">20 songs</button>
+            <button class="col-xs-6 btn btn-primary btn-lg btn-control btn-export" type="button" data-count="40">40 songs</button>
+            <button class="col-xs-6 btn btn-primary btn-lg btn-control btn-export" type="button" data-count="50">50 songs</button>
+        </div>
 
 		 <div class="controls">
              <a href="#" id="launch" target="_blank" class="btn azm-social azm-btn azm-border-bottom azm-spotify hide">
-                 <i class="fa fa-spotify"></i> Start listening
+                 <i class="fa fa-spotify"></i> Launch my playlist!
              </a>
 		</div>
     </div>
