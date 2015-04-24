@@ -485,6 +485,9 @@
                     .then(addTracksToSpotifyPlaylist)
                     .then(function(response){
                         alert("done!");
+
+                    }).error(function(){
+                        alert("oops");
                     });
 
             };
@@ -555,9 +558,9 @@
 
                 // Export playlists
                 $(".btn-export").on("click", function(){
+                    $(".btn-export").hide();
                     var trackCount = $(this).data("count");
                     if(trackCount > 0 && trackCount <= 50 ){
-                        $(".btn-export").addClass("disabled");
                         //TODO static playlist creation logic goes here
                         generatePlaylist(trackCount);
                     }
