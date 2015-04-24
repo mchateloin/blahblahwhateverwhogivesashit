@@ -29,6 +29,9 @@
             <a href="#" disabled id="spotify-loggedin" class="btn azm-social azm-size-64 azm-circle azm-long-shadow azm-spotify">
                 <img class="media-object" src=""/>
             </a>
+            <a id="spotify-logout" href="#">
+                Sign out
+            </a>
             <!--
 
             <a href="/login/lastfm" style="opacity: 0.3" id="lastfm-login" class="btn azm-social azm-size-64 azm-circle azm-long-shadow azm-lastfm">
@@ -508,13 +511,15 @@
 
                             if(response.images.length !== 0){
                                 $('#spotify-loggedin img').attr("src", response.images[0].url);
+
                             } else {
                                 $('#spotify-loggedin img').attr("src", "images/default-avatar.png");
                             }
 
                             $('#spotify-loggedin img').load(function(){
-                                $('#spotify-login').removeClass('spin').hide().attr('disabled',false);
+                                $('#spotify-login').removeClass('loading').hide().attr('disabled',false);
                                 $('#spotify-loggedin').css('display', 'inline-block');
+                                $('#spotify-logout').show();
                             });
 
 							$('#connect .controls > .next').show();
@@ -526,9 +531,16 @@
                         // render initial screen
                         $('#spotify-login').css('display', 'inline-block');
                         $('#spotify-loggedin').hide();
+                        $('#spotify-logout').hide();
                     }
 
                 }
+
+                $('#spotify-logout').click(function(){
+                    $('#spotify-login').show().removeClass('loading').attr('disabled',false);
+                    $('#spotify-loggedin').hide();
+                    $('#spotify-logout').hide();
+                });
 
                 // Export playlists
                 $(".btn-export").on("click", function(){

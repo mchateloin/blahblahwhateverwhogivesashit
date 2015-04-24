@@ -145,6 +145,15 @@ h2 {
     margin: 0;
 }
 
+#spotify-logout {
+    font-size: 18px;
+    padding-left: 15px;
+    }
+
+#spotify-logout:hover {
+    text-decoration: underline !important;
+}
+
 .section .controls{
 	margin-top: 60px;
 }
