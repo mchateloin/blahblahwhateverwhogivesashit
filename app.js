@@ -45,6 +45,7 @@ app.get('/login/spotify', function(req, res) {
         response_type: 'code',
         client_id: process.env.SPOTIFY_CLIENT_ID,
         scope: scope,
+        show_dialog: true, // Force the Spotify login screen every time, just in case user's s  witching between accounts.
         redirect_uri: process.env.SPOTIFY_CALLBACK_URI || ( req.protocol + "://" + req.get('host') + "/callback" ),
         state: state
     }));
@@ -57,17 +58,6 @@ app.get('/login/spotify', function(req, res) {
         state: state
     }));
 });
-
-/**
- * GET /logout/spotify
- */
-app.get('/logout/spotify', function(req, res){
-
-    res.clearCookie(spotifyKey);
-
-
-});
-
 
 /**
  * GET /callback
