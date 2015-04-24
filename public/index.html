@@ -112,7 +112,7 @@
                         if(anchorLink == 'seed' && slideIndex == 1){
                             alert("First slide loaded");
                             //$seeds.tagsinput('focus');
-                            $(".bootstrap-tagsinput input:first").focus();
+                            $seeds.tagsinput('input').focus();
                         }
 
                     }
@@ -140,6 +140,7 @@
 
             // Control progress to next step based on how many artists are chosen.
             $seeds.on('itemAdded itemRemoved', function(event) {
+                $seeds.tagsinput('input').val('');
                 var numTags = $seeds.tagsinput('items').length;
                 if(numTags >= 3){
                     $('#seed .controls > .next').show();
@@ -154,7 +155,9 @@
 				$.fn.fullpage.moveSectionDown();
 
                 // Auto complete initialize in seed field.
-                $(".bootstrap-tagsinput input").autocomplete({
+
+
+                $seeds.tagsinput('input').autocomplete({
                     source: function( request, response ) {
                         $.ajax({
                             url: config.echoNestHost + "api/v4/artist/suggest",
@@ -182,9 +185,14 @@
                         // We have remember these in order to remove them from the export playlist later.
                         if(ui.item){
                             artistsSeeded[ui.item.id] = ui.item.label;
+                            $seeds.tagsinput('input').val('');
+                            $seeds.tagsinput('add', ui.item.label);
                         }
                     }
                 });
+
+
+
 			});
 
             // Progress from Seed to Export
