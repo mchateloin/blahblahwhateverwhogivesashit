@@ -79,6 +79,9 @@
 		<button class="btn btn-primary btn-lg btn-control btn-export" type="button" data-count="50">50</button>
 
 		 <div class="controls">
+             <a href="#" id="launch" target="_blank" class="btn azm-social azm-btn azm-border-bottom azm-spotify hide">
+                 <i class="fa fa-spotify"></i> Start listening
+             </a>
 		</div>
     </div>
 	
@@ -447,11 +450,16 @@
 
             var createSrcDestPlaylists = function(count){
                 return Q.all([
-                    createSpotifyPlaylist(),         // Request #2
-                    createStaticEchonestPlaylist(count)         // Request #3
+                    createSpotifyPlaylist(),                // Request #2
+                    createStaticEchonestPlaylist(count)     // Request #3
                 ]).spread(function(spPlaylist, enPlaylist){
 
                     console.log('mmmm spread', spPlaylist, enPlaylist);
+
+                    if(spPlaylist.external_urls && spPlaylist.external_urls.spotify){
+                        $("#launch").removeClass('hide').show().attr('href', spPlaylist.external_urls.spotify).show();
+                    }
+
                     return {
                         id: spPlaylist.id,
                         tracks: enPlaylist.response.songs.filter(function(song){
@@ -484,10 +492,9 @@
                 createSrcDestPlaylists(count)
                     .then(addTracksToSpotifyPlaylist)
                     .then(function(response){
-                        alert("done!");
+                        console.log('done', response);
 
-                    }).error(function(){
-                        alert("oops");
+                        alert("done!");
                     });
 
             };
