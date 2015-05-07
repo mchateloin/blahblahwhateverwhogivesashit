@@ -478,6 +478,14 @@
                         $("#launch").removeClass('hide').show().attr('href', spPlaylist.external_urls.spotify).show();
                     }
 
+                    if(enPlaylist.response.songs.length < 10){
+                        throw new Error("Can't generate playlist based off input");
+                        $("#fullpage #seed.section").removeClass('hide').show();
+                        $.fn.fullpage.moveSectionUp();
+                        $("#seed h1").text("Oops");
+                        $("#seed p").text("Sorry, it looks like we can't generate a playlist based off those artists. Try something else.");
+                    }
+
                     return {
                         id: spPlaylist.id,
                         tracks: enPlaylist.response.songs.filter(function(song){
