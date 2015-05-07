@@ -326,6 +326,10 @@ ul.tracks > li img.art {
     }
 }
 
+.ui-helper-hidden-accessible{
+    display: none !important;
+}
+
 @media only screen
 and (max-device-width : 768px)  {
 

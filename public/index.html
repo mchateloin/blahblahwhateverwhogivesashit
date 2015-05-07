@@ -134,7 +134,6 @@
 
                         //Seed loaded
                         if(anchorLink == 'seed' && slideIndex == 1){
-                            alert("First slide loaded");
                             //$seeds.tagsinput('focus');
                             $seeds.tagsinput('input').focus();
                         }
@@ -204,7 +203,9 @@
                         // We have remember these in order to remove them from the export playlist later.
                         if(ui.item){
                             artistsSeeded[ui.item.id] = ui.item.label;
-                            $seeds.tagsinput('input').val('');
+                            setTimeout(function(){
+                                $seeds.tagsinput('input').val('');
+                            }, 1);
                             $seeds.tagsinput('add', ui.item.label);
                         }
                     }
