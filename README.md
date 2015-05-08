@@ -6,4 +6,4 @@ It allows you to generate a playlist based off three or more artists, **not incl
 
 Currently all playlists can only be exported to Spotify. Playlist generation is powered by [echonest](http://developer.echonest.com/docs/v4).
 
-Hosting it [here](http://fuckwhatyouheard.herokuapp.com) for now at.
+Hosting it [here](http://fuckwhatyouheard.herokuapp.com) for now.
